@@ -1,37 +1,33 @@
-import { Instagram, Crosshair } from "lucide-react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useCallback, useEffect, useState, ReactNode } from "react";
+import { Instagram } from "lucide-react";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import bgLightning from "@/assets/bg-lightning.jpg";
-import logo from "@/assets/logo.png";
-
-const AndroidIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#3DDC84">
-    <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0012 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.983 5.983 0 006 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/>
-  </svg>
-);
-
-const AppleIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-  </svg>
-);
-
-const TargetIcon = () => (
-  <Crosshair className="w-6 h-6 text-primary" />
-);
+import logo from "@/assets/logo-purasensi.png";
+import avatar from "@/assets/avatar-purasensi.jpeg";
+import Particles from "@/components/linkinbio/Particles";
+import LinkCard, { type LinkData } from "@/components/linkinbio/LinkCard";
+import PaymentModal, { type PaymentProduct } from "@/components/linkinbio/PaymentModal";
+import { AndroidIcon, AppleIcon, TargetIcon } from "@/components/linkinbio/icons";
 
 const PROFILE = {
-  name: "Pares Xiter",
-  avatar: "https://i.pravatar.cc/150?img=12",
-  instagram: "https://instagram.com/pares.xiter",
+  name: "Pura Sensi",
+  avatar: avatar,
+  instagram: "https://www.instagram.com/purasensi.xit?igsh=czNvaHhxbzYyMXA5",
 };
 
-const LINKS: { label: string; url: string; icon: ReactNode; subtitle?: string }[] = [
-  { label: "AUXÍLIO VIP", url: "#", icon: <TargetIcon /> },
-  { label: "PAINEL PERMANENTE", url: "#", icon: <AndroidIcon />, subtitle: "Android" },
-  { label: "PAINEL PERMANENTE", url: "#", icon: <AppleIcon />, subtitle: "iOS" },
-  { label: "PAINEL MENSAL", url: "#", icon: <AndroidIcon />, subtitle: "Android" },
-  { label: "PAINEL MENSAL", url: "#", icon: <AppleIcon />, subtitle: "iOS" },
+const LINKS: LinkData[] = [
+  { label: "AUXÍLIO VIP", icon: <TargetIcon />, price: 49.90 },
+  { label: "PAINEL PERMANENTE", icon: <AndroidIcon />, subtitle: "Android", price: 129.90 },
+  { label: "PAINEL PERMANENTE", icon: <AppleIcon />, subtitle: "iOS", price: 149.90 },
+  { label: "PAINEL MENSAL", icon: <AndroidIcon />, subtitle: "Android", price: 39.90 },
+  { label: "PAINEL MENSAL", icon: <AppleIcon />, subtitle: "iOS", price: 49.90 },
+];
+
+const EXTRA_PRODUCTS = [
+  { name: "Sensi Pack Básico", price: 19.90, desc: "Acesso ao pacote básico com recursos essenciais" },
+  { name: "Sensi Pack Premium", price: 79.90, desc: "Pacote completo com todos os recursos" },
+  { name: "Consultoria Individual", price: 99.90, desc: "Sessão 1-a-1 personalizada" },
+  { name: "Combo Sensi Total", price: 199.90, desc: "Todos os painéis + auxílio VIP" },
 ];
 
 const container = {
@@ -42,9 +38,7 @@ const container = {
 const item = {
   hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
   show: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
+    opacity: 1, y: 0, filter: "blur(0px)",
     transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
@@ -52,146 +46,24 @@ const item = {
 const logoAnim = {
   hidden: { opacity: 0, scale: 0.7, filter: "blur(12px)" },
   show: {
-    opacity: 1,
-    scale: 1,
-    filter: "blur(0px)",
+    opacity: 1, scale: 1, filter: "blur(0px)",
     transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
-// Floating particles component
-const Particles = () => {
-  const particles = Array.from({ length: 20 });
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-      {particles.map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-primary/40"
-          initial={{
-            x: `${Math.random() * 100}%`,
-            y: `${Math.random() * 100}%`,
-            scale: Math.random() * 0.5 + 0.5,
-          }}
-          animate={{
-            y: [null, `${Math.random() * 100}%`, `${Math.random() * 100}%`],
-            x: [null, `${Math.random() * 100}%`, `${Math.random() * 100}%`],
-            opacity: [0, 0.8, 0],
-          }}
-          transition={{
-            duration: Math.random() * 8 + 6,
-            repeat: Infinity,
-            ease: "linear",
-            delay: Math.random() * 4,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-// Interactive link card
-const LinkCard = ({ link, index }: { link: typeof LINKS[0]; index: number }) => {
-  const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const glowX = useTransform(mouseX, (v) => `${v}px`);
-  const glowY = useTransform(mouseY, (v) => `${v}px`);
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      mouseX.set(e.clientX - rect.left);
-      mouseY.set(e.clientY - rect.top);
-    },
-    [mouseX, mouseY]
-  );
-
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setRipple({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-      setTimeout(() => setRipple(null), 600);
-    },
-    []
-  );
-
-  return (
-    <motion.a
-      href={link.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      variants={item}
-      onMouseMove={handleMouseMove}
-      onClick={handleClick}
-      whileHover={{ scale: 1.03, y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      className="relative flex items-center gap-4 w-full px-5 py-4 rounded-xl bg-card/60 backdrop-blur-md border border-border/40 hover:border-primary/60 transition-all group overflow-hidden"
-      style={{ willChange: "transform" }}
-    >
-      {/* Glow follow cursor */}
-      <motion.div
-        className="absolute w-32 h-32 rounded-full bg-primary/20 blur-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ left: glowX, top: glowY, x: "-50%", y: "-50%" }}
-      />
-
-      {/* Ripple effect */}
-      {ripple && (
-        <motion.span
-          className="absolute rounded-full bg-primary/30 pointer-events-none"
-          initial={{ width: 0, height: 0, opacity: 0.6 }}
-          animate={{ width: 300, height: 300, opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          style={{
-            left: ripple.x,
-            top: ripple.y,
-            x: "-50%",
-            y: "-50%",
-          }}
-        />
-      )}
-
-      {/* Shine sweep on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden rounded-xl pointer-events-none">
-        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
-      </div>
-
-      <motion.span
-        className="relative w-8 flex-shrink-0 flex items-center justify-center"
-        whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2 }}
-        transition={{ duration: 0.4 }}
-      >
-        {link.icon}
-      </motion.span>
-      <div className="relative flex-1 text-center pr-8">
-        <span className="text-sm font-semibold tracking-wider text-foreground group-hover:text-primary transition-colors duration-300">
-          {link.label}
-        </span>
-        {link.subtitle && (
-          <span className="block text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
-            {link.subtitle}
-          </span>
-        )}
-      </div>
-
-      {/* Arrow indicator */}
-      <motion.span
-        className="absolute right-4 text-muted-foreground/40 group-hover:text-primary/70 transition-colors"
-        initial={{ x: 0, opacity: 0 }}
-        whileHover={{ x: 3 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 + index * 0.1 }}
-      >
-        ›
-      </motion.span>
-    </motion.a>
-  );
-};
+const formatBRL = (v: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 const LinkInBio = () => {
   const [bgOpacity, setBgOpacity] = useState(0.4);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<PaymentProduct | null>(null);
 
-  // Subtle lightning flash effect
+  const openPayment = (product: PaymentProduct) => {
+    setSelectedProduct(product);
+    setPaymentOpen(true);
+  };
+
   useEffect(() => {
     const flash = () => {
       setBgOpacity(0.25);
@@ -204,8 +76,8 @@ const LinkInBio = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Background */}
+    <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
+      {/* Background */}
       <motion.img
         src={bgLightning}
         alt=""
@@ -220,14 +92,11 @@ const LinkInBio = () => {
         animate={{ opacity: bgOpacity }}
         transition={{ duration: 0.15 }}
       />
-
-      {/* Gradient overlays */}
       <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/80 z-[1]" />
       <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent z-[1]" />
-
       <Particles />
 
-      {/* Content */}
+      {/* Main content */}
       <motion.div
         className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex flex-col items-center"
         variants={container}
@@ -242,9 +111,8 @@ const LinkInBio = () => {
           variants={logoAnim}
         />
 
-        {/* Avatar with animated ring */}
+        {/* Avatar */}
         <motion.div variants={item} className="mb-3 relative">
-          {/* Rotating glow ring */}
           <motion.div
             className="absolute -inset-1 rounded-full"
             style={{
@@ -254,22 +122,17 @@ const LinkInBio = () => {
             animate={{ rotate: 360 }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           />
-          {/* Pulse ring */}
           <motion.div
             className="absolute -inset-2 rounded-full border border-primary/30"
             animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           />
           <div className="relative w-20 h-20 rounded-full border-2 border-primary overflow-hidden shadow-lg shadow-primary/40">
-            <img
-              src={PROFILE.avatar}
-              alt={PROFILE.name}
-              className="w-full h-full object-cover"
-            />
+            <img src={PROFILE.avatar} alt={PROFILE.name} className="w-full h-full object-cover" />
           </div>
         </motion.div>
 
-        {/* Name with glow */}
+        {/* Name */}
         <motion.h1
           variants={item}
           className="text-2xl md:text-3xl font-bold tracking-[0.25em] text-foreground mb-2 drop-shadow-[0_0_20px_hsl(var(--primary)/0.2)]"
@@ -277,7 +140,7 @@ const LinkInBio = () => {
           {PROFILE.name}
         </motion.h1>
 
-        {/* Social */}
+        {/* Instagram */}
         <motion.div variants={item} className="mb-8">
           <motion.a
             href={PROFILE.instagram}
@@ -294,18 +157,52 @@ const LinkInBio = () => {
         {/* Links */}
         <div className="w-full space-y-3">
           {LINKS.map((link, i) => (
-            <LinkCard key={i} link={link} index={i} />
+            <LinkCard
+              key={i}
+              link={link}
+              index={i}
+              onClick={() => openPayment({ name: link.label, subtitle: link.subtitle, price: link.price })}
+            />
           ))}
         </div>
 
+        {/* Extra products section */}
+        <motion.div variants={item} className="w-full mt-12">
+          <h2 className="text-lg font-bold tracking-widest text-foreground/80 mb-4 text-center uppercase">
+            Mais Produtos
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {EXTRA_PRODUCTS.map((p, i) => (
+              <motion.button
+                key={i}
+                type="button"
+                onClick={() => openPayment({ name: p.name, price: p.price })}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card/60 backdrop-blur-md border border-border/40 hover:border-primary/60 transition-all group cursor-pointer text-center"
+              >
+                <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                  {p.name}
+                </span>
+                <span className="text-xs text-muted-foreground">{p.desc}</span>
+                <span className="text-base font-bold text-primary">{formatBRL(p.price)}</span>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Footer */}
-        <motion.p
-          variants={item}
-          className="mt-10 text-xs text-muted-foreground/50"
-        >
+        <motion.p variants={item} className="mt-10 text-xs text-muted-foreground/50">
           © 2026 {PROFILE.name}
         </motion.p>
       </motion.div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        product={selectedProduct}
+      />
     </div>
   );
 };
