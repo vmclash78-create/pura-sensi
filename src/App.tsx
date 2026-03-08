@@ -10,6 +10,9 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminBanners from "./pages/admin/AdminBanners";
+import AdminLinkProducts from "./pages/admin/AdminLinkProducts";
+import AdminOrderBumps from "./pages/admin/AdminOrderBumps";
+import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 import PixConfirmation from "./pages/PixConfirmation";
 
@@ -29,6 +32,9 @@ const App = () => (
               <Route index element={<AdminProducts />} />
               <Route path="categorias" element={<AdminCategories />} />
               <Route path="banners" element={<AdminBanners />} />
+              <Route path="link-products" element={<AdminLinkProducts />} />
+              <Route path="order-bumps" element={<AdminOrderBumps />} />
+              <Route path="configuracoes" element={<AdminSettings />} />
             </Route>
 
             <Route path="/pix/confirmacao" element={<PixConfirmation />} />
