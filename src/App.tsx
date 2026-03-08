@@ -10,6 +10,9 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminBanners from "./pages/admin/AdminBanners";
+import AdminLinkProducts from "./pages/admin/AdminLinkProducts";
+import AdminOrderBumps from "./pages/admin/AdminOrderBumps";
+import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 import PixConfirmation from "./pages/PixConfirmation";
 
