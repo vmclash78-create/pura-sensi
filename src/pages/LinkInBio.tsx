@@ -114,7 +114,7 @@ const LinkInBio = () => {
 
         <div className="w-full space-y-3">
           {mainLinks.map((link, i) => (
-            <LinkCard key={i} link={link} index={i} onClick={() => openPayment({ name: link.label, subtitle: link.subtitle, price: link.price })} />
+            <LinkCard key={i} link={link} index={i} onClick={() => openPayment({ name: link.label, subtitle: link.subtitle, price: link.price, description: link.description })} />
           ))}
         </div>
 
