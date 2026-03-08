@@ -1,10 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { X, Clock, ChevronLeft } from "lucide-react";
+import { ChevronLeft, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
-import OrderSummary from "@/components/checkout/OrderSummary";
 import PixPaymentScreen from "@/components/checkout/PixPaymentScreen";
 
 interface PaymentProduct {
@@ -54,20 +53,20 @@ const CountdownTimer = () => {
   const sec = String(seconds % 60).padStart(2, "0");
 
   return (
-    <div className="flex items-center gap-3 bg-[#1a1a2e] text-white px-4 py-2.5">
+    <div className="flex items-center gap-3 bg-secondary text-foreground px-4 py-2">
       <div className="flex items-center gap-2">
         <div className="text-center">
-          <span className="text-xl font-bold font-mono">{min}</span>
-          <span className="block text-[10px] uppercase text-white/60">min</span>
+          <span className="text-lg font-bold font-mono">{min}</span>
+          <span className="block text-[10px] uppercase text-muted-foreground">min</span>
         </div>
-        <span className="text-xl font-bold">:</span>
+        <span className="text-lg font-bold">:</span>
         <div className="text-center">
-          <span className="text-xl font-bold font-mono">{sec}</span>
-          <span className="block text-[10px] uppercase text-white/60">seg</span>
+          <span className="text-lg font-bold font-mono">{sec}</span>
+          <span className="block text-[10px] uppercase text-muted-foreground">seg</span>
         </div>
       </div>
-      <Clock className="w-5 h-5 text-white/70" />
-      <span className="text-sm font-medium">Seu tempo está acabando!</span>
+      <Clock className="w-4 h-4 text-muted-foreground" />
+      <span className="text-xs font-medium text-muted-foreground">Seu tempo está acabando!</span>
     </div>
   );
 };
@@ -95,15 +94,15 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-0 rounded-t-2xl bg-[#f5f5f5] border-none [&>button]:hidden">
-        {/* Top bar with back button and timer */}
+      <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-0 rounded-t-2xl bg-background border-none [&>button]:hidden">
+        {/* Top bar: back + timer */}
         <div className="sticky top-0 z-30">
-          <div className="flex items-center justify-between bg-[#1a1a2e] px-3 py-2">
+          <div className="flex items-center gap-2 bg-card border-b border-border px-4 py-3">
             <button
               onClick={() => onOpenChange(false)}
-              className="flex items-center gap-1 text-white/80 hover:text-white transition-colors text-sm"
+              className="flex items-center gap-1 text-foreground hover:text-primary transition-colors text-sm font-medium"
             >
-              <ChevronLeft className="w-4 h-4" /> Voltar
+              <ChevronLeft className="w-5 h-5" /> Voltar
             </button>
           </div>
           <CountdownTimer />
@@ -111,29 +110,29 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
 
         <div className="max-w-lg mx-auto px-4 pb-8">
           {/* Product card */}
-          <div className="bg-white mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
-            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#00a859] to-[#008a49] flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl font-bold text-white">
+          <div className="bg-card mt-4 rounded-xl p-4 flex items-center gap-4 border border-border">
+            <div className="w-14 h-14 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+              <span className="text-xl font-bold text-primary-foreground">
                 {product.name.charAt(0)}
               </span>
             </div>
             <div>
-              <p className="font-bold text-gray-900">{product.name}</p>
-              <p className="text-xl font-bold text-gray-900">{formatBRL(product.price)}</p>
+              <p className="font-bold text-foreground">{product.name}</p>
+              <p className="text-xl font-bold text-foreground">{formatBRL(product.price)}</p>
               {product.description && (
-                <p className="text-xs text-gray-500 mt-0.5">{product.description}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{product.description}</p>
               )}
             </div>
           </div>
 
           {/* PIX info badge */}
-          <div className="mt-3 bg-[#00a859]/10 border border-[#00a859]/20 rounded-xl p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#00a859] flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-lg">◈</span>
+          <div className="mt-3 bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+              <span className="text-primary-foreground text-lg">◈</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">Pagamento exclusivo via PIX</p>
-              <p className="text-xs text-gray-500">Rápido, seguro e sem taxas</p>
+              <p className="text-sm font-semibold text-foreground">Pagamento exclusivo via PIX</p>
+              <p className="text-xs text-muted-foreground">Rápido, seguro e sem taxas</p>
             </div>
           </div>
 
