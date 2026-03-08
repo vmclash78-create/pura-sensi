@@ -4,12 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import { PublicLayout } from "@/components/layout/PublicLayout";
-import Index from "./pages/Index";
-import Catalog from "./pages/Catalog";
-import ProductDetail from "./pages/ProductDetail";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+import LinkInBio from "./pages/LinkInBio";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -27,16 +22,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
-            <Route element={<PublicLayout />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/catalogo" element={<Catalog />} />
-              <Route path="/produto/:slug" element={<ProductDetail />} />
-              <Route path="/sobre" element={<About />} />
-              <Route path="/contato" element={<Contact />} />
-            </Route>
-
-            {/* Admin routes */}
+            <Route path="/" element={<LinkInBio />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminProducts />} />
