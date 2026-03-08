@@ -11,6 +11,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminBanners from "./pages/admin/AdminBanners";
 import NotFound from "./pages/NotFound";
+import PixConfirmation from "./pages/PixConfirmation";
 
 const queryClient = new QueryClient();
 
