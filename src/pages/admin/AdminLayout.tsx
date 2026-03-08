@@ -2,12 +2,15 @@ import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { STORE_NAME } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Package, Tag, Image, LogOut, Home } from "lucide-react";
+import { Package, Tag, Image, LogOut, Home, Link2, Zap, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/admin", label: "Produtos", icon: Package, exact: true },
   { to: "/admin/categorias", label: "Categorias", icon: Tag },
   { to: "/admin/banners", label: "Banners", icon: Image },
+  { to: "/admin/link-products", label: "Link in Bio", icon: Link2 },
+  { to: "/admin/order-bumps", label: "Order Bumps", icon: Zap },
+  { to: "/admin/configuracoes", label: "Config. PIX", icon: Settings },
 ];
 
 const AdminLayout = () => {

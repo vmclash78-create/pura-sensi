@@ -32,6 +32,9 @@ const App = () => (
               <Route index element={<AdminProducts />} />
               <Route path="categorias" element={<AdminCategories />} />
               <Route path="banners" element={<AdminBanners />} />
+              <Route path="link-products" element={<AdminLinkProducts />} />
+              <Route path="order-bumps" element={<AdminOrderBumps />} />
+              <Route path="configuracoes" element={<AdminSettings />} />
             </Route>
 
             <Route path="/pix/confirmacao" element={<PixConfirmation />} />
