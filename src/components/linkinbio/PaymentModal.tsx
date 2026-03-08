@@ -169,6 +169,7 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
               merchantCity={merchantCity}
               onBack={() => onOpenChange(false)}
               onConfirm={() => {
+                if (!validateForm()) return;
                 onOpenChange(false);
                 navigate("/pix/confirmacao");
               }}
