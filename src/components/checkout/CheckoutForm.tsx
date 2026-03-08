@@ -87,11 +87,13 @@ const CheckoutForm = ({ form, onChange, errors }: CheckoutFormProps) => {
           </div>
           <Input
             placeholder="(00) 00000-0000"
-            className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+            className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.phone ? 'border-destructive' : ''}`}
             value={form.phone}
             onChange={(e) => set("phone", phoneMask(e.target.value))}
             maxLength={15}
           />
+        </div>
+        {errors?.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
         </div>
       </div>
     </div>
