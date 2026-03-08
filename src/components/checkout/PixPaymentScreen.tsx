@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import { generatePixPayload } from "@/lib/pix";
 import QRCode from "qrcode";
 
-const PIX_KEY = "198871e4-f73c-4643-bb1d-3d3fafa2aa18";
 const WAIT_SECONDS = 15;
 
 interface PixPaymentScreenProps {
   productName: string;
   amount: number;
+  pixKey: string;
+  merchantName: string;
+  merchantCity: string;
   onBack: () => void;
   onConfirm: () => void;
 }
@@ -19,7 +21,7 @@ interface PixPaymentScreenProps {
 const formatBRL = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
-const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPaymentScreenProps) => {
+const PixPaymentScreen = ({ productName, amount, pixKey, merchantName, merchantCity, onBack, onConfirm }: PixPaymentScreenProps) => {
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [pixPayload, setPixPayload] = useState("");
   const [copied, setCopied] = useState(false);
@@ -28,14 +30,14 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
   const unlocked = countdown === 0;
 
   useEffect(() => {
-    const payload = generatePixPayload(amount);
+    const payload = generatePixPayload(amount, pixKey, merchantName, merchantCity);
     setPixPayload(payload);
     QRCode.toDataURL(payload, {
       width: 300,
       margin: 2,
       color: { dark: "#000000", light: "#ffffff" },
     }).then(setQrDataUrl);
-  }, [amount]);
+  }, [amount, pixKey, merchantName, merchantCity]);
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -59,7 +61,6 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
       className="flex flex-col items-center"
     >
       <div className="w-full max-w-lg bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
-        {/* Header */}
         <div className="bg-primary px-5 py-4 flex items-center gap-3">
           <QrCode className="w-6 h-6 text-primary-foreground" />
           <div>
@@ -68,7 +69,6 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
           </div>
         </div>
 
-        {/* Product + amount */}
         <div className="px-5 pt-5">
           <div className="flex items-center justify-between bg-secondary rounded-xl p-4">
             <div>
@@ -79,7 +79,6 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
           </div>
         </div>
 
-        {/* QR Code */}
         <div className="flex flex-col items-center py-6 px-5">
           {qrDataUrl ? (
             <div className="border-2 border-primary/20 rounded-2xl p-3 bg-white shadow-sm">
@@ -90,11 +89,10 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
           )}
 
           <p className="text-sm text-muted-foreground mt-4 text-center max-w-xs">
-            Abra o app do seu banco e pague usando o <strong className="text-foreground">QR Code</strong> ou copie a <strong className="text-foreground">chave PIX</strong> abaixo
+            Abra o app do seu banco e pague usando o <strong className="text-foreground">QR Code</strong> ou copie o <strong className="text-foreground">código PIX</strong> abaixo
           </p>
         </div>
 
-        {/* PIX Key + copy */}
         <div className="px-5 pb-5">
           <div className="bg-secondary rounded-xl p-4 mb-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
@@ -118,7 +116,6 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
           </Button>
         </div>
 
-        {/* Security badges */}
         <div className="px-5 pb-5">
           <div className="flex items-center justify-center gap-4 py-3 border-t border-border">
             <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -134,7 +131,6 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
         </div>
       </div>
 
-      {/* Countdown / Finalize */}
       <div className="w-full max-w-lg mt-5">
         {!unlocked ? (
           <div className="flex flex-col items-center gap-3">
@@ -160,11 +156,7 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
             <p className="text-xs text-muted-foreground">Aguarde para finalizar</p>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
             <Button
               type="button"
               onClick={onConfirm}
