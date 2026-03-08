@@ -33,9 +33,10 @@ export interface CheckoutFormData {
 interface CheckoutFormProps {
   form: CheckoutFormData;
   onChange: (form: CheckoutFormData) => void;
+  errors?: Partial<Record<keyof CheckoutFormData, string>>;
 }
 
-const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
+const CheckoutForm = ({ form, onChange, errors }: CheckoutFormProps) => {
   const set = (key: keyof CheckoutFormData, value: string) =>
     onChange({ ...form, [key]: value });
 
@@ -46,34 +47,37 @@ const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
         <Input
           type="email"
           placeholder="Insira seu e-mail"
-          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.email ? 'border-destructive' : ''}`}
           value={form.email}
           onChange={(e) => set("email", e.target.value)}
           maxLength={255}
           required
         />
+        {errors?.email && <p className="text-xs text-destructive">{errors.email}</p>}
       </div>
       <div className="space-y-1.5">
         <Label className="text-foreground font-semibold text-sm">Nome completo</Label>
         <Input
           placeholder="Insira seu nome completo"
-          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.name ? 'border-destructive' : ''}`}
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
           maxLength={100}
           required
         />
+        {errors?.name && <p className="text-xs text-destructive">{errors.name}</p>}
       </div>
       <div className="space-y-1.5">
         <Label className="text-foreground font-semibold text-sm">CPF/CNPJ</Label>
         <Input
           placeholder="Insira seu CPF ou CNPJ"
-          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.cpf ? 'border-destructive' : ''}`}
           value={form.cpf}
           onChange={(e) => set("cpf", cpfMask(e.target.value))}
           maxLength={18}
           required
         />
+        {errors?.cpf && <p className="text-xs text-destructive">{errors.cpf}</p>}
       </div>
       <div className="space-y-1.5">
         <Label className="text-foreground font-semibold text-sm">Seu celular</Label>
@@ -83,7 +87,7 @@ const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
           </div>
           <Input
             placeholder="(00) 00000-0000"
-            className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+            className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.phone ? 'border-destructive' : ''}`}
             value={form.phone}
             onChange={(e) => set("phone", phoneMask(e.target.value))}
             maxLength={15}
