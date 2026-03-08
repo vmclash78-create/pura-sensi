@@ -20,62 +20,65 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (error) {
-      setIsAdmin(false);
-      return;
-    }
-
-    setIsAdmin(!!data);
-  };
-
-  // 🔥 inicialização única e controlada
-  const initAuth = async () => {
-    const { data } = await supabase.auth.getSession();
-    const session = data.session;
-
-    setSession(session);
-    setUser(session?.user ?? null);
-
-    if (session?.user) {
-      await checkAdmin(session.user.id);
-    } else {
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!data);
+    } catch {
       setIsAdmin(false);
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {
-    initAuth();
+    let mounted = true;
 
+    // 1. Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (_event, newSession) => {
+        if (!mounted) return;
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
 
-        if (session?.user) {
-          await checkAdmin(session.user.id);
+        if (newSession?.user) {
+          await checkAdmin(newSession.user.id);
         } else {
           setIsAdmin(false);
         }
+        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    // 2. Then get initial session
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      const s = data.session;
+      setSession(s);
+      setUser(s?.user ?? null);
+
+      if (s?.user) {
+        checkAdmin(s.user.id).finally(() => {
+          if (mounted) setLoading(false);
+        });
+      } else {
+        setIsAdmin(false);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (mounted) setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
   };
 
