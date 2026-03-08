@@ -59,9 +59,30 @@ const CountdownTimer = () => {
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const navigate = useNavigate();
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
   const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
     email: "", name: "", cpf: "", phone: "",
   });
+
+  const validateForm = (): boolean => {
+    const errors: Partial<Record<keyof CheckoutFormData, string>> = {};
+    if (!buyerForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerForm.email.trim())) {
+      errors.email = "Informe um e-mail válido";
+    }
+    if (!buyerForm.name.trim() || buyerForm.name.trim().length < 3) {
+      errors.name = "Informe seu nome completo";
+    }
+    const cpfDigits = buyerForm.cpf.replace(/\D/g, "");
+    if (cpfDigits.length !== 11 && cpfDigits.length !== 14) {
+      errors.cpf = "Informe um CPF ou CNPJ válido";
+    }
+    const phoneDigits = buyerForm.phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10) {
+      errors.phone = "Informe um celular válido";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const { data: dbBumps } = useOrderBumps();
   const { data: settings } = useSiteSettings();
