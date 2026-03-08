@@ -75,6 +75,9 @@ const CountdownTimer = () => {
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const navigate = useNavigate();
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
+  const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
+    email: "", name: "", cpf: "", phone: "",
+  });
 
   const toggleBump = useCallback((id: string) => {
     setSelectedBumps((prev) => {
