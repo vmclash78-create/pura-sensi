@@ -33,6 +33,7 @@ export interface CheckoutFormData {
 interface CheckoutFormProps {
   form: CheckoutFormData;
   onChange: (form: CheckoutFormData) => void;
+  errors?: Partial<Record<keyof CheckoutFormData, string>>;
 }
 
 const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
