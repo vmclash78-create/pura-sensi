@@ -5,7 +5,6 @@ import { X, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
-import PaymentMethods, { type PaymentMethod, type CardFormData } from "@/components/checkout/PaymentMethods";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import PixPaymentScreen from "@/components/checkout/PixPaymentScreen";
@@ -26,7 +25,6 @@ interface PaymentModalProps {
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-// Order bumps — easily extendable
 const ORDER_BUMPS: OrderBumpItem[] = [
   {
     id: "bump-sensi-premium",
@@ -45,7 +43,7 @@ const ORDER_BUMPS: OrderBumpItem[] = [
 ];
 
 const CountdownTimer = () => {
-  const [seconds, setSeconds] = useState(300); // 5 min
+  const [seconds, setSeconds] = useState(300);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -81,10 +79,6 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
     email: "", name: "", cpf: "", phone: "",
   });
-  const [cardForm, setCardForm] = useState<CardFormData>({
-    cardNumber: "", expiry: "", cvv: "", cardHolder: "",
-  });
-  const [method, setMethod] = useState<PaymentMethod>("pix");
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [showPixScreen, setShowPixScreen] = useState(false);
@@ -107,28 +101,7 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
       toast.error("Preencha todos os campos corretamente.");
       return;
     }
-
-    if (method === "pix") {
-      setShowPixScreen(true);
-      return;
-    }
-
-    if (method === "card") {
-      if (
-        cardForm.cardNumber.replace(/\D/g, "").length < 16 ||
-        !cardForm.expiry ||
-        !cardForm.cvv ||
-        !cardForm.cardHolder
-      ) {
-        toast.error("Preencha todos os dados do cartão.");
-        return;
-      }
-    }
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
-    toast.success("Pagamento enviado! Em breve você receberá os dados de acesso.");
-    onOpenChange(false);
+    setShowPixScreen(true);
   };
 
   if (!product) return null;
@@ -151,10 +124,8 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
             />
           ) : (
             <div key="checkout-form">
-              {/* Urgency bar */}
               <CountdownTimer />
 
-              {/* Close button */}
               <button
                 onClick={() => onOpenChange(false)}
                 className="absolute top-2.5 right-3 z-30 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -165,7 +136,7 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
               <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 pb-8">
                 {/* Product card */}
                 <div className="bg-white mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#00a859] to-[#008a49] flex items-center justify-center flex-shrink-0">
                     <span className="text-2xl font-bold text-white">
                       {product.name.charAt(0)}
                     </span>
@@ -184,15 +155,15 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
                   <CheckoutForm form={buyerForm} onChange={setBuyerForm} />
                 </div>
 
-                {/* Payment methods */}
-                <div className="mt-3">
-                  <PaymentMethods
-                    method={method}
-                    onMethodChange={setMethod}
-                    cardForm={cardForm}
-                    onCardFormChange={setCardForm}
-                    totalFormatted={formatBRL(total)}
-                  />
+                {/* PIX info badge */}
+                <div className="mt-3 bg-[#00a859]/10 border border-[#00a859]/20 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#00a859] flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-lg">◈</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Pagamento exclusivo via PIX</p>
+                    <p className="text-xs text-gray-500">Rápido, seguro e sem taxas</p>
+                  </div>
                 </div>
 
                 {/* Order bumps */}
