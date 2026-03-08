@@ -7,7 +7,7 @@ import { generatePixPayload } from "@/lib/pix";
 import QRCode from "qrcode";
 
 const PIX_KEY = "198871e4-f73c-4643-bb1d-3d3fafa2aa18";
-const WAIT_SECONDS = 20;
+const WAIT_SECONDS = 15;
 
 interface PixPaymentScreenProps {
   productName: string;

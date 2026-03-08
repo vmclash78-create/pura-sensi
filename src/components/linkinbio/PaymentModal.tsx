@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { toast } from "sonner";
 import { X, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
-import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
+import { useEffect } from "react";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import PixPaymentScreen from "@/components/checkout/PixPaymentScreen";
@@ -76,12 +74,7 @@ const CountdownTimer = () => {
 
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const navigate = useNavigate();
-  const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
-    email: "", name: "", cpf: "", phone: "",
-  });
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(false);
-  const [showPixScreen, setShowPixScreen] = useState(false);
 
   const toggleBump = useCallback((id: string) => {
     setSelectedBumps((prev) => {
@@ -95,101 +88,71 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const activeBumps = ORDER_BUMPS.filter((b) => selectedBumps.has(b.id));
   const total = (product?.price ?? 0) + activeBumps.reduce((s, b) => s + b.price, 0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!buyerForm.email.trim() || !buyerForm.name.trim() || buyerForm.cpf.replace(/\D/g, "").length < 11) {
-      toast.error("Preencha todos os campos corretamente.");
-      return;
-    }
-    setShowPixScreen(true);
-  };
-
   if (!product) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-0 rounded-t-2xl bg-[#f5f5f5] border-none [&>button]:hidden">
-        <AnimatePresence mode="wait">
-          {showPixScreen ? (
+        <CountdownTimer />
+
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-2.5 right-3 z-30 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="max-w-lg mx-auto px-4 pb-8">
+          {/* Product card */}
+          <div className="bg-white mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
+            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#00a859] to-[#008a49] flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl font-bold text-white">
+                {product.name.charAt(0)}
+              </span>
+            </div>
+            <div>
+              <p className="font-bold text-gray-900">{product.name}</p>
+              <p className="text-xl font-bold text-gray-900">{formatBRL(product.price)}</p>
+              {product.description && (
+                <p className="text-xs text-gray-500 mt-0.5">{product.description}</p>
+              )}
+            </div>
+          </div>
+
+          {/* PIX info badge */}
+          <div className="mt-3 bg-[#00a859]/10 border border-[#00a859]/20 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#00a859] flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-lg">◈</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Pagamento exclusivo via PIX</p>
+              <p className="text-xs text-gray-500">Rápido, seguro e sem taxas</p>
+            </div>
+          </div>
+
+          {/* Order bumps */}
+          <div className="mt-3">
+            <OrderBump
+              bumps={ORDER_BUMPS}
+              selected={selectedBumps}
+              onToggle={toggleBump}
+              formatPrice={formatBRL}
+            />
+          </div>
+
+          {/* PIX Payment */}
+          <div className="mt-4">
             <PixPaymentScreen
-              key="pix-screen"
               productName={product.name}
               amount={total}
-              onBack={() => setShowPixScreen(false)}
+              onBack={() => onOpenChange(false)}
               onConfirm={() => {
                 onOpenChange(false);
-                setShowPixScreen(false);
                 navigate("/pix/confirmacao");
               }}
             />
-          ) : (
-            <div key="checkout-form">
-              <CountdownTimer />
-
-              <button
-                onClick={() => onOpenChange(false)}
-                className="absolute top-2.5 right-3 z-30 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 pb-8">
-                {/* Product card */}
-                <div className="bg-white mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#00a859] to-[#008a49] flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl font-bold text-white">
-                      {product.name.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900">{product.name}</p>
-                    <p className="text-xl font-bold text-gray-900">{formatBRL(product.price)}</p>
-                    {product.description && (
-                      <p className="text-xs text-gray-500 mt-0.5">{product.description}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Buyer form */}
-                <div className="mt-3">
-                  <CheckoutForm form={buyerForm} onChange={setBuyerForm} />
-                </div>
-
-                {/* PIX info badge */}
-                <div className="mt-3 bg-[#00a859]/10 border border-[#00a859]/20 rounded-xl p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#00a859] flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-lg">◈</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Pagamento exclusivo via PIX</p>
-                    <p className="text-xs text-gray-500">Rápido, seguro e sem taxas</p>
-                  </div>
-                </div>
-
-                {/* Order bumps */}
-                <div className="mt-3">
-                  <OrderBump
-                    bumps={ORDER_BUMPS}
-                    selected={selectedBumps}
-                    onToggle={toggleBump}
-                    formatPrice={formatBRL}
-                  />
-                </div>
-
-                {/* Summary + CTA */}
-                <div className="mt-4 space-y-4">
-                  <OrderSummary
-                    productName={product.name}
-                    productPrice={product.price}
-                    selectedBumps={activeBumps}
-                    formatPrice={formatBRL}
-                    loading={loading}
-                  />
-                </div>
-              </form>
-            </div>
-          )}
-        </AnimatePresence>
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
