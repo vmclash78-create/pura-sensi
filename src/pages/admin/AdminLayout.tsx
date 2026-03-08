@@ -130,7 +130,14 @@ const AdminLayout = () => {
       </aside>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Background matching home page */}
+        <div className="absolute inset-0 z-0">
+          <img src={bgLightning} alt="" className="w-full h-full object-cover opacity-15" />
+          <div className="absolute inset-0 bg-background/85" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent" />
+        </div>
         {/* Mobile header */}
         <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3 md:hidden">
           <button
