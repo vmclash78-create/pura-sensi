@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { CreditCard, QrCode, ShieldCheck, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { X, Clock } from "lucide-react";
+import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
+import PaymentMethods, { type PaymentMethod, type CardFormData } from "@/components/checkout/PaymentMethods";
+import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
+import OrderSummary from "@/components/checkout/OrderSummary";
 
 interface PaymentProduct {
   name: string;
   subtitle?: string;
   price: number;
+  description?: string;
 }
 
 interface PaymentModalProps {
@@ -22,297 +23,173 @@ interface PaymentModalProps {
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-const cpfMask = (value: string) => {
-  const digits = value.replace(/\D/g, "").slice(0, 14);
-  if (digits.length <= 11) {
-    return digits
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-  }
-  return digits
-    .replace(/(\d{2})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1/$2")
-    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
-};
+// Order bumps — easily extendable
+const ORDER_BUMPS: OrderBumpItem[] = [
+  {
+    id: "bump-sensi-premium",
+    name: "PACK DE SENSIBILIDADES VIP",
+    description: "🎯 Pack Sensi Premium: 5 Configurações exclusivas! Garanta mira grudada e 90% de capa",
+    price: 2.22,
+    originalPrice: 9.90,
+  },
+  {
+    id: "bump-aura",
+    name: "Módulo Aura +999",
+    description: "🎯 Domine a mira absurdamente! Segredos da UMP, Desert, AC80, Carapina revelados.",
+    price: 4.90,
+    originalPrice: 14.90,
+  },
+];
 
-const phoneMask = (value: string) => {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  return digits
-    .replace(/(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2");
-};
+const CountdownTimer = () => {
+  const [seconds, setSeconds] = useState(300); // 5 min
 
-const cardMask = (value: string) => {
-  const digits = value.replace(/\D/g, "").slice(0, 16);
-  return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
-};
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-const expiryMask = (value: string) => {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  return digits.replace(/(\d{2})(\d)/, "$1/$2");
-};
+  const min = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const sec = String(seconds % 60).padStart(2, "0");
 
-type PaymentMethod = "card" | "pix";
+  return (
+    <div className="flex items-center gap-3 bg-[#1a1a2e] text-white px-4 py-2.5">
+      <div className="flex items-center gap-2">
+        <div className="text-center">
+          <span className="text-xl font-bold font-mono">{min}</span>
+          <span className="block text-[10px] uppercase text-white/60">min</span>
+        </div>
+        <span className="text-xl font-bold">:</span>
+        <div className="text-center">
+          <span className="text-xl font-bold font-mono">{sec}</span>
+          <span className="block text-[10px] uppercase text-white/60">seg</span>
+        </div>
+      </div>
+      <Clock className="w-5 h-5 text-white/70" />
+      <span className="text-sm font-medium">Seu tempo está acabando!</span>
+    </div>
+  );
+};
 
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
-  const [form, setForm] = useState({
-    email: "",
-    name: "",
-    cpf: "",
-    phone: "",
-    cardNumber: "",
-    expiry: "",
-    cvv: "",
-    cardHolder: "",
+  const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
+    email: "", name: "", cpf: "", phone: "",
+  });
+  const [cardForm, setCardForm] = useState<CardFormData>({
+    cardNumber: "", expiry: "", cvv: "", cardHolder: "",
   });
   const [method, setMethod] = useState<PaymentMethod>("card");
+  const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+
+  const toggleBump = useCallback((id: string) => {
+    setSelectedBumps((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const activeBumps = ORDER_BUMPS.filter((b) => selectedBumps.has(b.id));
+  const total = (product?.price ?? 0) + activeBumps.reduce((s, b) => s + b.price, 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email.trim() || !form.name.trim() || form.cpf.replace(/\D/g, "").length < 11) {
+    if (!buyerForm.email.trim() || !buyerForm.name.trim() || buyerForm.cpf.replace(/\D/g, "").length < 11) {
       toast.error("Preencha todos os campos corretamente.");
       return;
     }
     if (method === "card") {
-      if (form.cardNumber.replace(/\D/g, "").length < 16 || !form.expiry || !form.cvv || !form.cardHolder) {
+      if (
+        cardForm.cardNumber.replace(/\D/g, "").length < 16 ||
+        !cardForm.expiry ||
+        !cardForm.cvv ||
+        !cardForm.cardHolder
+      ) {
         toast.error("Preencha todos os dados do cartão.");
         return;
       }
     }
     setLoading(true);
-    // TODO: Integrar com Mercado Pago API via edge function
+    // TODO: Integrar com Mercado Pago / Stripe via edge function
+    // Payload: { product, buyer: buyerForm, card: cardForm, method, bumps: activeBumps, total }
     await new Promise((r) => setTimeout(r, 1500));
     setLoading(false);
     toast.success("Pagamento enviado! Em breve você receberá os dados de acesso.");
     onOpenChange(false);
-    setForm({ email: "", name: "", cpf: "", phone: "", cardNumber: "", expiry: "", cvv: "", cardHolder: "" });
   };
 
   if (!product) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-0 rounded-t-2xl bg-[#f5f5f5] border-none">
-        {/* Header */}
-        <div className="sticky top-0 z-20 bg-[#1a1a2e] text-white px-4 py-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold">{product.name}</h2>
-            {product.subtitle && <span className="text-sm text-white/70">{product.subtitle}</span>}
-          </div>
-          <button onClick={() => onOpenChange(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-0 rounded-t-2xl bg-[#f5f5f5] border-none [&>button]:hidden">
+        {/* Urgency bar */}
+        <CountdownTimer />
 
-        <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
-          {/* Product info */}
-          <div className="bg-white mx-4 mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
-            <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl font-bold text-primary">
+        {/* Close button */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-2.5 right-3 z-30 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 pb-8">
+          {/* Product card */}
+          <div className="bg-white mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
+            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl font-bold text-white">
                 {product.name.charAt(0)}
               </span>
             </div>
             <div>
-              <p className="font-semibold text-gray-900">{product.name}</p>
+              <p className="font-bold text-gray-900">{product.name}</p>
               <p className="text-xl font-bold text-gray-900">{formatBRL(product.price)}</p>
-            </div>
-          </div>
-
-          {/* Personal info */}
-          <div className="bg-white mx-4 mt-3 rounded-xl p-5 border border-gray-200 space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-gray-700 font-semibold text-sm">Seu e-mail</Label>
-              <Input
-                type="email"
-                placeholder="Insira seu e-mail"
-                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                maxLength={255}
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-gray-700 font-semibold text-sm">Nome completo</Label>
-              <Input
-                placeholder="Insira seu nome completo"
-                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                maxLength={100}
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-gray-700 font-semibold text-sm">CPF/CNPJ</Label>
-              <Input
-                placeholder="Insira seu CPF ou CNPJ"
-                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                value={form.cpf}
-                onChange={(e) => setForm((f) => ({ ...f, cpf: cpfMask(e.target.value) }))}
-                maxLength={18}
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-gray-700 font-semibold text-sm">Seu celular</Label>
-              <div className="flex gap-2">
-                <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded-md px-3 text-sm text-gray-700 flex-shrink-0">
-                  🇧🇷 +55
-                </div>
-                <Input
-                  placeholder="(00) 00000-0000"
-                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                  value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: phoneMask(e.target.value) }))}
-                  maxLength={15}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Payment method tabs */}
-          <div className="bg-white mx-4 mt-3 rounded-xl p-5 border border-gray-200">
-            <div className="flex gap-2 mb-5">
-              <button
-                type="button"
-                onClick={() => setMethod("card")}
-                className={`flex-1 flex flex-col items-center gap-1.5 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
-                  method === "card"
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                <CreditCard className="w-5 h-5" />
-                Cartão de crédito
-              </button>
-              <button
-                type="button"
-                onClick={() => setMethod("pix")}
-                className={`flex-1 flex flex-col items-center gap-1.5 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
-                  method === "pix"
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                <QrCode className="w-5 h-5" />
-                Pix
-              </button>
-            </div>
-
-            <AnimatePresence mode="wait">
-              {method === "card" ? (
-                <motion.div
-                  key="card"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-4"
-                >
-                  <div className="space-y-1.5">
-                    <Label className="text-gray-700 font-semibold text-sm">Número do cartão</Label>
-                    <Input
-                      placeholder="0000 0000 0000 0000"
-                      className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                      value={form.cardNumber}
-                      onChange={(e) => setForm((f) => ({ ...f, cardNumber: cardMask(e.target.value) }))}
-                      maxLength={19}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-gray-700 font-semibold text-sm">Validade</Label>
-                      <Input
-                        placeholder="MM/AA"
-                        className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                        value={form.expiry}
-                        onChange={(e) => setForm((f) => ({ ...f, expiry: expiryMask(e.target.value) }))}
-                        maxLength={5}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-gray-700 font-semibold text-sm">CVV</Label>
-                      <Input
-                        placeholder="3 ou 4 dígitos"
-                        className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                        value={form.cvv}
-                        onChange={(e) => setForm((f) => ({ ...f, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
-                        maxLength={4}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-gray-700 font-semibold text-sm">Nome do titular</Label>
-                    <Input
-                      placeholder="Insira o nome impresso no cartão"
-                      className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary"
-                      value={form.cardHolder}
-                      onChange={(e) => setForm((f) => ({ ...f, cardHolder: e.target.value }))}
-                      maxLength={100}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-gray-700 font-semibold text-sm">Parcelas</Label>
-                    <div className="bg-white border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700">
-                      1x de {formatBRL(product.price)}
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="pix"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-center py-6"
-                >
-                  <QrCode className="w-16 h-16 mx-auto text-gray-400 mb-3" />
-                  <p className="text-sm text-gray-600">O QR Code Pix será gerado após confirmar a compra</p>
-                </motion.div>
+              {product.description && (
+                <p className="text-xs text-gray-500 mt-0.5">{product.description}</p>
               )}
-            </AnimatePresence>
-          </div>
-
-          {/* Summary */}
-          <div className="bg-white mx-4 mt-3 rounded-xl p-5 border border-gray-200 space-y-2">
-            <h3 className="font-bold text-gray-900 mb-3">Resumo</h3>
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>{product.name}</span>
-              <span>{formatBRL(product.price)}</span>
-            </div>
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Subtotal</span>
-              <span>{formatBRL(product.price)}</span>
-            </div>
-            <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-gray-900">
-              <span>Total</span>
-              <span>1x {formatBRL(product.price)}</span>
             </div>
           </div>
 
-          {/* Submit */}
-          <div className="mx-4 mt-4 mb-3">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full py-6 text-base font-bold tracking-wide bg-[#00a859] hover:bg-[#008a49] text-white rounded-xl"
-            >
-              {loading ? "Processando..." : "Comprar agora"}
-            </Button>
+          {/* Buyer form */}
+          <div className="mt-3">
+            <CheckoutForm form={buyerForm} onChange={setBuyerForm} />
           </div>
 
-          {/* Security badge */}
-          <div className="flex items-center justify-center gap-2 pb-8 text-gray-500">
-            <ShieldCheck className="w-5 h-5" />
-            <div className="text-xs">
-              <p className="font-semibold">Ambiente seguro</p>
-              <p>Seus dados confidenciais</p>
-            </div>
+          {/* Payment methods */}
+          <div className="mt-3">
+            <PaymentMethods
+              method={method}
+              onMethodChange={setMethod}
+              cardForm={cardForm}
+              onCardFormChange={setCardForm}
+              totalFormatted={formatBRL(total)}
+            />
+          </div>
+
+          {/* Order bumps */}
+          <div className="mt-3">
+            <OrderBump
+              bumps={ORDER_BUMPS}
+              selected={selectedBumps}
+              onToggle={toggleBump}
+              formatPrice={formatBRL}
+            />
+          </div>
+
+          {/* Summary + CTA */}
+          <div className="mt-4 space-y-4">
+            <OrderSummary
+              productName={product.name}
+              productPrice={product.price}
+              selectedBumps={activeBumps}
+              formatPrice={formatBRL}
+              loading={loading}
+            />
           </div>
         </form>
       </SheetContent>
