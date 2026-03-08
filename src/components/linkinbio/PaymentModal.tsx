@@ -151,7 +151,7 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
           </div>
 
           <div className="mt-3">
-            <CheckoutForm form={buyerForm} onChange={setBuyerForm} />
+            <CheckoutForm form={buyerForm} onChange={(f) => { setBuyerForm(f); if (Object.keys(formErrors).length) setFormErrors({}); }} errors={formErrors} />
           </div>
 
           {bumps.length > 0 && (
