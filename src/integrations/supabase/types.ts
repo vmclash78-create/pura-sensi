@@ -71,6 +71,78 @@ export type Database = {
         }
         Relationships: []
       }
+      link_products: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          icon_type: string
+          id: string
+          is_active: boolean
+          label: string
+          price: number
+          section: string
+          subtitle: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon_type?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          price: number
+          section?: string
+          subtitle?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          icon_type?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          price?: number
+          section?: string
+          subtitle?: string | null
+        }
+        Relationships: []
+      }
+      order_bumps: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          original_price: number | null
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          original_price?: number | null
+          price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          original_price?: number | null
+          price?: number
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
@@ -152,6 +224,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
