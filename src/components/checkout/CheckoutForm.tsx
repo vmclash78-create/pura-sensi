@@ -95,8 +95,8 @@ const CheckoutForm = ({ form, onChange, errors }: CheckoutFormProps) => {
         </div>
         {errors?.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
       </div>
-      </div>
     </div>
+  );
   );
 };
 
