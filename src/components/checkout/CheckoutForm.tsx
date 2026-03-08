@@ -36,7 +36,7 @@ interface CheckoutFormProps {
   errors?: Partial<Record<keyof CheckoutFormData, string>>;
 }
 
-const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
+const CheckoutForm = ({ form, onChange, errors }: CheckoutFormProps) => {
   const set = (key: keyof CheckoutFormData, value: string) =>
     onChange({ ...form, [key]: value });
 
@@ -47,12 +47,13 @@ const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
         <Input
           type="email"
           placeholder="Insira seu e-mail"
-          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.email ? 'border-destructive' : ''}`}
           value={form.email}
           onChange={(e) => set("email", e.target.value)}
           maxLength={255}
           required
         />
+        {errors?.email && <p className="text-xs text-destructive">{errors.email}</p>}
       </div>
       <div className="space-y-1.5">
         <Label className="text-foreground font-semibold text-sm">Nome completo</Label>
