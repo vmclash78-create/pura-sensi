@@ -29,6 +29,7 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
 
   useEffect(() => {
     const payload = generatePixPayload(amount);
+    setPixPayload(payload);
     QRCode.toDataURL(payload, {
       width: 300,
       margin: 2,
