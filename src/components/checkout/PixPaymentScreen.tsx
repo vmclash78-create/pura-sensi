@@ -44,11 +44,11 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
   }, [countdown]);
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(PIX_KEY);
+    navigator.clipboard.writeText(pixPayload);
     setCopied(true);
-    toast.success("Chave PIX copiada!");
+    toast.success("Código PIX copiado!");
     setTimeout(() => setCopied(false), 2500);
-  }, []);
+  }, [pixPayload]);
 
   return (
     <motion.div
