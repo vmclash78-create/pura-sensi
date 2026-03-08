@@ -59,12 +59,13 @@ const CheckoutForm = ({ form, onChange, errors }: CheckoutFormProps) => {
         <Label className="text-foreground font-semibold text-sm">Nome completo</Label>
         <Input
           placeholder="Insira seu nome completo"
-          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.name ? 'border-destructive' : ''}`}
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
           maxLength={100}
           required
         />
+        {errors?.name && <p className="text-xs text-destructive">{errors.name}</p>}
       </div>
       <div className="space-y-1.5">
         <Label className="text-foreground font-semibold text-sm">CPF/CNPJ</Label>
