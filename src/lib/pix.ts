@@ -1,5 +1,5 @@
 /**
- * Gerador de payload PIX (BR Code) conforme padrão do Banco Central do Brasil.
+ * Gerador de payload PIX (BR Code) conforme padrão EMV do Banco Central do Brasil.
  * Referência: Manual de Padrões para Iniciação do PIX - BACEN
  */
 
@@ -13,12 +13,13 @@ function tlv(id: string, value: string): string {
 }
 
 function crc16(str: string): string {
+  const polynomial = 0x1021;
   let crc = 0xffff;
   for (let i = 0; i < str.length; i++) {
     crc ^= str.charCodeAt(i) << 8;
     for (let j = 0; j < 8; j++) {
       if (crc & 0x8000) {
-        crc = (crc << 1) ^ 0x1021;
+        crc = (crc << 1) ^ polynomial;
       } else {
         crc <<= 1;
       }
@@ -29,29 +30,54 @@ function crc16(str: string): string {
 }
 
 export function generatePixPayload(amount: number): string {
+  // 00 - Payload Format Indicator
+  const payloadFormatIndicator = tlv("00", "01");
+
+  // 01 - Point of Initiation Method (11 = static, 12 = dynamic)
+  const pointOfInitiation = tlv("01", "12");
+
+  // 26 - Merchant Account Information
   const gui = tlv("00", "br.gov.bcb.pix");
   const key = tlv("01", PIX_KEY);
   const merchantAccountInfo = tlv("26", gui + key);
 
-  const payloadFormatIndicator = tlv("00", "01");
-  const pointOfInitiation = tlv("01", "12"); // dinâmico (uso único)
-  const transactionCurrency = tlv("53", "986"); // BRL
-  const transactionAmount = tlv("54", amount.toFixed(2));
-  const countryCode = tlv("58", "BR");
-  const merchantName = tlv("59", MERCHANT_NAME);
-  const merchantCity = tlv("60", MERCHANT_CITY);
+  // 52 - Merchant Category Code (0000 = não informado)
+  const merchantCategoryCode = tlv("52", "0000");
 
-  const payload =
+  // 53 - Transaction Currency (986 = BRL)
+  const transactionCurrency = tlv("53", "986");
+
+  // 54 - Transaction Amount
+  const transactionAmount = tlv("54", amount.toFixed(2));
+
+  // 58 - Country Code
+  const countryCode = tlv("58", "BR");
+
+  // 59 - Merchant Name (max 25 chars, no accents)
+  const merchantName = tlv("59", MERCHANT_NAME.substring(0, 25));
+
+  // 60 - Merchant City (max 15 chars, no accents)
+  const merchantCity = tlv("60", MERCHANT_CITY.substring(0, 15));
+
+  // 62 - Additional Data Field Template (txid)
+  const txId = tlv("05", "***");
+  const additionalData = tlv("62", txId);
+
+  // Build payload without CRC
+  const payloadWithoutCRC =
     payloadFormatIndicator +
     pointOfInitiation +
     merchantAccountInfo +
+    merchantCategoryCode +
     transactionCurrency +
     transactionAmount +
     countryCode +
     merchantName +
     merchantCity +
-    "6304"; // CRC placeholder (ID 63, len 04)
+    additionalData +
+    "6304"; // CRC16 field ID (63) + length (04)
 
-  const checksum = crc16(payload);
-  return payload + checksum;
+  // Calculate and append CRC16
+  const checksum = crc16(payloadWithoutCRC);
+  return payloadWithoutCRC + checksum;
 }
