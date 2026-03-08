@@ -96,14 +96,18 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-0 rounded-t-2xl bg-[#f5f5f5] border-none [&>button]:hidden">
-        <CountdownTimer />
-
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-2.5 right-3 z-30 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        {/* Top bar with back button and timer */}
+        <div className="sticky top-0 z-30">
+          <div className="flex items-center justify-between bg-[#1a1a2e] px-3 py-2">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="flex items-center gap-1 text-white/80 hover:text-white transition-colors text-sm"
+            >
+              <ChevronLeft className="w-4 h-4" /> Voltar
+            </button>
+          </div>
+          <CountdownTimer />
+        </div>
 
         <div className="max-w-lg mx-auto px-4 pb-8">
           {/* Product card */}
