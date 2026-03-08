@@ -137,6 +137,11 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
             </div>
           </div>
 
+          {/* Buyer form */}
+          <div className="mt-3">
+            <CheckoutForm form={buyerForm} onChange={setBuyerForm} />
+          </div>
+
           {/* Order bumps */}
           <div className="mt-3">
             <OrderBump
