@@ -40,13 +40,13 @@ const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
     onChange({ ...form, [key]: value });
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-gray-200 space-y-4">
+    <div className="bg-card rounded-xl p-5 border border-border space-y-4">
       <div className="space-y-1.5">
-        <Label className="text-gray-700 font-semibold text-sm">Seu e-mail</Label>
+        <Label className="text-foreground font-semibold text-sm">Seu e-mail</Label>
         <Input
           type="email"
           placeholder="Insira seu e-mail"
-          className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-blue-500"
+          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
           value={form.email}
           onChange={(e) => set("email", e.target.value)}
           maxLength={255}
@@ -54,10 +54,10 @@ const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
         />
       </div>
       <div className="space-y-1.5">
-        <Label className="text-gray-700 font-semibold text-sm">Nome completo</Label>
+        <Label className="text-foreground font-semibold text-sm">Nome completo</Label>
         <Input
           placeholder="Insira seu nome completo"
-          className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-blue-500"
+          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
           maxLength={100}
@@ -65,10 +65,10 @@ const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
         />
       </div>
       <div className="space-y-1.5">
-        <Label className="text-gray-700 font-semibold text-sm">CPF/CNPJ</Label>
+        <Label className="text-foreground font-semibold text-sm">CPF/CNPJ</Label>
         <Input
           placeholder="Insira seu CPF ou CNPJ"
-          className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-blue-500"
+          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
           value={form.cpf}
           onChange={(e) => set("cpf", cpfMask(e.target.value))}
           maxLength={18}
@@ -76,14 +76,14 @@ const CheckoutForm = ({ form, onChange }: CheckoutFormProps) => {
         />
       </div>
       <div className="space-y-1.5">
-        <Label className="text-gray-700 font-semibold text-sm">Seu celular</Label>
+        <Label className="text-foreground font-semibold text-sm">Seu celular</Label>
         <div className="flex gap-2">
-          <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded-md px-3 text-sm text-gray-700 flex-shrink-0">
+          <div className="flex items-center gap-1.5 bg-secondary border border-border rounded-md px-3 text-sm text-foreground flex-shrink-0">
             🇧🇷 +55
           </div>
           <Input
             placeholder="(00) 00000-0000"
-            className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-blue-500"
+            className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
             value={form.phone}
             onChange={(e) => set("phone", phoneMask(e.target.value))}
             maxLength={15}
