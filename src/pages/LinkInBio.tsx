@@ -157,7 +157,7 @@ const LinkCard = ({ link, index }: { link: typeof LINKS[0]; index: number }) => 
       </div>
 
       <motion.span
-        className="relative text-2xl w-8 flex-shrink-0 text-center"
+        className="relative w-8 flex-shrink-0 flex items-center justify-center"
         whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2 }}
         transition={{ duration: 0.4 }}
       >
