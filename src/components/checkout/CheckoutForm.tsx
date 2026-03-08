@@ -71,12 +71,13 @@ const CheckoutForm = ({ form, onChange, errors }: CheckoutFormProps) => {
         <Label className="text-foreground font-semibold text-sm">CPF/CNPJ</Label>
         <Input
           placeholder="Insira seu CPF ou CNPJ"
-          className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+          className={`bg-secondary border-border text-foreground placeholder:text-muted-foreground ${errors?.cpf ? 'border-destructive' : ''}`}
           value={form.cpf}
           onChange={(e) => set("cpf", cpfMask(e.target.value))}
           maxLength={18}
           required
         />
+        {errors?.cpf && <p className="text-xs text-destructive">{errors.cpf}</p>}
       </div>
       <div className="space-y-1.5">
         <Label className="text-foreground font-semibold text-sm">Seu celular</Label>
