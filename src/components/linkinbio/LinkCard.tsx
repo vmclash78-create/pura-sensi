@@ -96,6 +96,9 @@ const LinkCard = ({ link, index, onClick }: LinkCardProps) => {
             {link.subtitle}
           </span>
         )}
+        <span className="block text-xs font-bold text-primary mt-0.5">
+          {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(link.price)}
+        </span>
       </div>
 
       <motion.span
