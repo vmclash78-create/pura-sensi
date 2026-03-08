@@ -54,9 +54,10 @@ const LinkInBio = () => {
   const [selectedProduct, setSelectedProduct] = useState<PaymentProduct | null>(null);
   const { data: products } = useLinkProducts();
 
-  const mainLinks: LinkData[] = (products?.filter((p) => p.section === "main") || []).map((p) => ({
+  const mainLinks = (products?.filter((p) => p.section === "main") || []).map((p) => ({
     label: p.label,
     subtitle: p.subtitle || undefined,
+    description: p.description || undefined,
     price: Number(p.price),
     icon: getIcon(p.icon_type),
   }));
@@ -114,7 +115,7 @@ const LinkInBio = () => {
 
         <div className="w-full space-y-3">
           {mainLinks.map((link, i) => (
-            <LinkCard key={i} link={link} index={i} onClick={() => openPayment({ name: link.label, subtitle: link.subtitle, price: link.price })} />
+            <LinkCard key={i} link={link} index={i} onClick={() => openPayment({ name: link.label, subtitle: link.subtitle, price: link.price, description: link.description })} />
           ))}
         </div>
 
@@ -123,7 +124,7 @@ const LinkInBio = () => {
             <h2 className="text-lg font-bold tracking-widest text-foreground/80 mb-4 text-center uppercase">Mais Produtos</h2>
             <div className="grid grid-cols-2 gap-3">
               {extraProducts.map((p, i) => (
-                <motion.button key={i} type="button" onClick={() => openPayment({ name: p.name, price: p.price })} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card/60 backdrop-blur-md border border-border/40 hover:border-primary/60 transition-all group cursor-pointer text-center">
+                <motion.button key={i} type="button" onClick={() => openPayment({ name: p.name, price: p.price, description: p.desc })} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card/60 backdrop-blur-md border border-border/40 hover:border-primary/60 transition-all group cursor-pointer text-center">
                   <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{p.name}</span>
                   <span className="text-xs text-muted-foreground">{p.desc}</span>
                   <span className="text-base font-bold text-primary">{formatBRL(p.price)}</span>
