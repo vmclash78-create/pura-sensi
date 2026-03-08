@@ -107,6 +107,12 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
       toast.error("Preencha todos os campos corretamente.");
       return;
     }
+
+    if (method === "pix") {
+      setShowPixScreen(true);
+      return;
+    }
+
     if (method === "card") {
       if (
         cardForm.cardNumber.replace(/\D/g, "").length < 16 ||
@@ -119,8 +125,6 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
       }
     }
     setLoading(true);
-    // TODO: Integrar com Mercado Pago / Stripe via edge function
-    // Payload: { product, buyer: buyerForm, card: cardForm, method, bumps: activeBumps, total }
     await new Promise((r) => setTimeout(r, 1500));
     setLoading(false);
     toast.success("Pagamento enviado! Em breve você receberá os dados de acesso.");
