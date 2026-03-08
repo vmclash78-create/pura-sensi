@@ -93,10 +93,9 @@ const CheckoutForm = ({ form, onChange, errors }: CheckoutFormProps) => {
             maxLength={15}
           />
         </div>
-        {errors?.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
       </div>
     </div>
-};
+  );
 };
 
 export default CheckoutForm;
