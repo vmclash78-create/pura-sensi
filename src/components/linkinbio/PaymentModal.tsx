@@ -77,15 +77,17 @@ const CountdownTimer = () => {
 };
 
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
+  const navigate = useNavigate();
   const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
     email: "", name: "", cpf: "", phone: "",
   });
   const [cardForm, setCardForm] = useState<CardFormData>({
     cardNumber: "", expiry: "", cvv: "", cardHolder: "",
   });
-  const [method, setMethod] = useState<PaymentMethod>("card");
+  const [method, setMethod] = useState<PaymentMethod>("pix");
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [showPixScreen, setShowPixScreen] = useState(false);
 
   const toggleBump = useCallback((id: string) => {
     setSelectedBumps((prev) => {
