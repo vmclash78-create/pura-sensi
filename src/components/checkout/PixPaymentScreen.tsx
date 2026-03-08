@@ -21,6 +21,7 @@ const formatBRL = (v: number) =>
 
 const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPaymentScreenProps) => {
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [pixPayload, setPixPayload] = useState("");
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState(WAIT_SECONDS);
 
@@ -28,6 +29,7 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
 
   useEffect(() => {
     const payload = generatePixPayload(amount);
+    setPixPayload(payload);
     QRCode.toDataURL(payload, {
       width: 300,
       margin: 2,
@@ -42,11 +44,11 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
   }, [countdown]);
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(PIX_KEY);
+    navigator.clipboard.writeText(pixPayload);
     setCopied(true);
-    toast.success("Chave PIX copiada!");
+    toast.success("Código PIX copiado!");
     setTimeout(() => setCopied(false), 2500);
-  }, []);
+  }, [pixPayload]);
 
   return (
     <motion.div
@@ -96,10 +98,10 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
         <div className="px-5 pb-5">
           <div className="bg-secondary rounded-xl p-4 mb-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
-              Chave PIX
+              PIX Copia e Cola
             </p>
-            <p className="text-sm text-foreground font-mono select-all break-all">
-              {PIX_KEY}
+            <p className="text-xs text-foreground font-mono select-all break-all leading-relaxed">
+              {pixPayload}
             </p>
           </div>
 
@@ -111,7 +113,7 @@ const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPayment
             {copied ? (
               <span className="flex items-center gap-2"><Check className="w-5 h-5" /> Copiado!</span>
             ) : (
-              <span className="flex items-center gap-2"><Copy className="w-5 h-5" /> Copiar chave PIX</span>
+              <span className="flex items-center gap-2"><Copy className="w-5 h-5" /> Copiar código PIX</span>
             )}
           </Button>
         </div>
