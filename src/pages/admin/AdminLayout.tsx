@@ -139,7 +139,7 @@ const AdminLayout = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent" />
         </div>
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3 md:hidden">
+        <header className="sticky top-0 z-10 bg-card/60 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3 md:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -152,7 +152,7 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto">
+        <main className="relative z-10 flex-1 overflow-auto">
           <div className="p-4 md:p-8 max-w-5xl">
             <Outlet />
           </div>
