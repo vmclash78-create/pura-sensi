@@ -3,7 +3,7 @@ import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { STORE_NAME } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Package, Tag, Image, LogOut, Home, Link2, Zap, Settings, Menu, X } from "lucide-react";
+import { Package, Tag, Image, LogOut, Home, Link2, Zap, Settings, Menu, X, Shield } from "lucide-react";
 
 const navItems = [
   { to: "/admin", label: "Produtos", icon: Package, exact: true },
@@ -19,84 +19,113 @@ const AdminLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-muted-foreground">Carregando...</span>
+        </div>
+      </div>
+    );
+
   if (!user || !isAdmin) return <Navigate to="/admin/login" replace />;
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const sidebarContent = (
-    <>
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <div>
-          <Link to="/" className="font-display text-lg font-semibold">{STORE_NAME}</Link>
-          <p className="text-xs text-muted-foreground">Painel Admin</p>
-        </div>
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={closeSidebar}>
-          <X size={18} />
-        </Button>
-      </div>
-      <nav className="flex-1 p-3 space-y-1">
-        {navItems.map((item) => {
-          const active = item.exact
-            ? location.pathname === item.to
-            : location.pathname.startsWith(item.to);
-          return (
-            <Link key={item.to} to={item.to} onClick={closeSidebar}>
-              <Button
-                variant={active ? "secondary" : "ghost"}
-                className="w-full justify-start gap-2"
-                size="sm"
-              >
-                <item.icon size={16} />
-                {item.label}
-              </Button>
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="p-3 border-t border-border space-y-1">
-        <Link to="/" onClick={closeSidebar}>
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-            <Home size={16} /> Ver Loja
-          </Button>
-        </Link>
-        <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={signOut}>
-          <LogOut size={16} /> Sair
-        </Button>
-      </div>
-    </>
-  );
-
   return (
-    <div className="min-h-screen flex relative">
+    <div className="min-h-screen flex relative bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
           onClick={closeSidebar}
         />
       )}
 
-      {/* Sidebar - desktop: always visible, mobile: slide-in overlay */}
+      {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-60 bg-card border-r border-border flex flex-col
+          fixed inset-y-0 left-0 z-50 w-64 bg-sidebar flex flex-col
+          border-r border-border/60
           transition-transform duration-200 ease-in-out
           md:sticky md:top-0 md:h-screen md:translate-x-0
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        {sidebarContent}
+        {/* Brand */}
+        <div className="p-5 border-b border-border/60 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
+              <Shield size={18} className="text-primary" />
+            </div>
+            <div>
+              <Link to="/" className="font-display text-lg font-bold tracking-wide text-foreground hover:text-primary transition-colors">
+                {STORE_NAME}
+              </Link>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-semibold">Painel Admin</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground hover:text-foreground" onClick={closeSidebar}>
+            <X size={18} />
+          </Button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <p className="px-3 py-2 text-[10px] uppercase tracking-[0.15em] text-muted-foreground font-semibold">
+            Gerenciamento
+          </p>
+          {navItems.map((item) => {
+            const active = item.exact
+              ? location.pathname === item.to
+              : location.pathname.startsWith(item.to);
+            return (
+              <Link key={item.to} to={item.to} onClick={closeSidebar}>
+                <button
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                    ${active
+                      ? "bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_hsl(0_72%_51%/0.15)]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60 border border-transparent"
+                    }
+                  `}
+                >
+                  <item.icon size={16} className={active ? "text-primary" : ""} />
+                  {item.label}
+                </button>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-border/60 space-y-1">
+          <Link to="/" onClick={closeSidebar}>
+            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all">
+              <Home size={16} /> Ver Loja
+            </button>
+          </Link>
+          <button
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive/80 hover:text-destructive hover:bg-destructive/10 transition-all"
+            onClick={signOut}
+          >
+            <LogOut size={16} /> Sair
+          </button>
+        </div>
       </aside>
 
       {/* Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 bg-card border-b border-border px-4 py-3 flex items-center gap-3 md:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border/60 px-4 py-3 flex items-center gap-3 md:hidden">
+          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="text-muted-foreground hover:text-foreground">
             <Menu size={20} />
           </Button>
-          <span className="font-semibold text-sm">Painel Admin</span>
+          <div className="flex items-center gap-2">
+            <Shield size={16} className="text-primary" />
+            <span className="font-display font-bold text-sm tracking-wide">Painel Admin</span>
+          </div>
         </header>
 
         <main className="flex-1 overflow-auto">
