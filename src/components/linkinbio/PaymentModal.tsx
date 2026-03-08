@@ -2,10 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { X, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
 import PaymentMethods, { type PaymentMethod, type CardFormData } from "@/components/checkout/PaymentMethods";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
 import OrderSummary from "@/components/checkout/OrderSummary";
+import PixPaymentScreen from "@/components/checkout/PixPaymentScreen";
 
 interface PaymentProduct {
   name: string;
