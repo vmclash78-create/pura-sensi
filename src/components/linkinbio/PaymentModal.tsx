@@ -136,71 +136,89 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[95vh] overflow-y-auto p-0 rounded-t-2xl bg-[#f5f5f5] border-none [&>button]:hidden">
-        {/* Urgency bar */}
-        <CountdownTimer />
-
-        {/* Close button */}
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-2.5 right-3 z-30 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 pb-8">
-          {/* Product card */}
-          <div className="bg-white mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
-            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl font-bold text-white">
-                {product.name.charAt(0)}
-              </span>
-            </div>
-            <div>
-              <p className="font-bold text-gray-900">{product.name}</p>
-              <p className="text-xl font-bold text-gray-900">{formatBRL(product.price)}</p>
-              {product.description && (
-                <p className="text-xs text-gray-500 mt-0.5">{product.description}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Buyer form */}
-          <div className="mt-3">
-            <CheckoutForm form={buyerForm} onChange={setBuyerForm} />
-          </div>
-
-          {/* Payment methods */}
-          <div className="mt-3">
-            <PaymentMethods
-              method={method}
-              onMethodChange={setMethod}
-              cardForm={cardForm}
-              onCardFormChange={setCardForm}
-              totalFormatted={formatBRL(total)}
-            />
-          </div>
-
-          {/* Order bumps */}
-          <div className="mt-3">
-            <OrderBump
-              bumps={ORDER_BUMPS}
-              selected={selectedBumps}
-              onToggle={toggleBump}
-              formatPrice={formatBRL}
-            />
-          </div>
-
-          {/* Summary + CTA */}
-          <div className="mt-4 space-y-4">
-            <OrderSummary
+        <AnimatePresence mode="wait">
+          {showPixScreen ? (
+            <PixPaymentScreen
+              key="pix-screen"
               productName={product.name}
-              productPrice={product.price}
-              selectedBumps={activeBumps}
-              formatPrice={formatBRL}
-              loading={loading}
+              amount={total}
+              onBack={() => setShowPixScreen(false)}
+              onConfirm={() => {
+                onOpenChange(false);
+                setShowPixScreen(false);
+                navigate("/pix/confirmacao");
+              }}
             />
-          </div>
-        </form>
+          ) : (
+            <div key="checkout-form">
+              {/* Urgency bar */}
+              <CountdownTimer />
+
+              {/* Close button */}
+              <button
+                onClick={() => onOpenChange(false)}
+                className="absolute top-2.5 right-3 z-30 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 pb-8">
+                {/* Product card */}
+                <div className="bg-white mt-4 rounded-xl p-4 flex items-center gap-4 border border-gray-200">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl font-bold text-white">
+                      {product.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">{product.name}</p>
+                    <p className="text-xl font-bold text-gray-900">{formatBRL(product.price)}</p>
+                    {product.description && (
+                      <p className="text-xs text-gray-500 mt-0.5">{product.description}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Buyer form */}
+                <div className="mt-3">
+                  <CheckoutForm form={buyerForm} onChange={setBuyerForm} />
+                </div>
+
+                {/* Payment methods */}
+                <div className="mt-3">
+                  <PaymentMethods
+                    method={method}
+                    onMethodChange={setMethod}
+                    cardForm={cardForm}
+                    onCardFormChange={setCardForm}
+                    totalFormatted={formatBRL(total)}
+                  />
+                </div>
+
+                {/* Order bumps */}
+                <div className="mt-3">
+                  <OrderBump
+                    bumps={ORDER_BUMPS}
+                    selected={selectedBumps}
+                    onToggle={toggleBump}
+                    formatPrice={formatBRL}
+                  />
+                </div>
+
+                {/* Summary + CTA */}
+                <div className="mt-4 space-y-4">
+                  <OrderSummary
+                    productName={product.name}
+                    productPrice={product.price}
+                    selectedBumps={activeBumps}
+                    formatPrice={formatBRL}
+                    loading={loading}
+                  />
+                </div>
+              </form>
+            </div>
+          )}
+        </AnimatePresence>
       </SheetContent>
     </Sheet>
   );

@@ -31,6 +31,7 @@ const App = () => (
               <Route path="banners" element={<AdminBanners />} />
             </Route>
 
+            <Route path="/pix/confirmacao" element={<PixConfirmation />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
