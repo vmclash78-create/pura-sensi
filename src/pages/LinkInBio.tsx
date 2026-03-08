@@ -54,9 +54,10 @@ const LinkInBio = () => {
   const [selectedProduct, setSelectedProduct] = useState<PaymentProduct | null>(null);
   const { data: products } = useLinkProducts();
 
-  const mainLinks: LinkData[] = (products?.filter((p) => p.section === "main") || []).map((p) => ({
+  const mainLinks = (products?.filter((p) => p.section === "main") || []).map((p) => ({
     label: p.label,
     subtitle: p.subtitle || undefined,
+    description: p.description || undefined,
     price: Number(p.price),
     icon: getIcon(p.icon_type),
   }));
