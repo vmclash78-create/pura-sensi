@@ -21,6 +21,7 @@ const formatBRL = (v: number) =>
 
 const PixPaymentScreen = ({ productName, amount, onBack, onConfirm }: PixPaymentScreenProps) => {
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [pixPayload, setPixPayload] = useState("");
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState(WAIT_SECONDS);
 
