@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { generatePixPayload } from "@/lib/pix";
 import QRCode from "qrcode";
 
-const WAIT_SECONDS = 15;
+const WAIT_SECONDS = 20;
 
 interface PixPaymentScreenProps {
   productName: string;
