@@ -1,12 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { ChevronLeft, Clock } from "lucide-react";
+import { ChevronLeft, Clock, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
-import PixPaymentScreen from "@/components/checkout/PixPaymentScreen";
+import SigiloPayCharge from "@/components/checkout/SigiloPayCharge";
+import { Button } from "@/components/ui/button";
 import { useOrderBumps } from "@/hooks/useOrderBumps";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentProduct {
   name: string;
@@ -26,17 +28,12 @@ const formatBRL = (value: number) =>
 
 const CountdownTimer = () => {
   const [seconds, setSeconds] = useState(300);
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((s) => (s > 0 ? s - 1 : 0));
-    }, 1000);
+    const interval = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(interval);
   }, []);
-
   const min = String(Math.floor(seconds / 60)).padStart(2, "0");
   const sec = String(seconds % 60).padStart(2, "0");
-
   return (
     <div className="flex items-center gap-3 bg-secondary text-foreground px-4 py-2">
       <div className="flex items-center gap-2">
@@ -56,6 +53,13 @@ const CountdownTimer = () => {
   );
 };
 
+interface ChargeData {
+  transactionId: string;
+  pixCode: string;
+  pixImage?: string;
+  amount: number;
+}
+
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const navigate = useNavigate();
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
@@ -63,6 +67,39 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
     email: "", name: "", cpf: "", phone: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [charge, setCharge] = useState<ChargeData | null>(null);
+
+  const { data: dbBumps } = useOrderBumps();
+
+  const bumps: OrderBumpItem[] = (dbBumps || []).map((b) => ({
+    id: b.id,
+    name: b.name,
+    description: b.description || "",
+    price: Number(b.price),
+    originalPrice: b.original_price ? Number(b.original_price) : undefined,
+  }));
+
+  const toggleBump = useCallback((id: string) => {
+    setSelectedBumps((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const activeBumps = bumps.filter((b) => selectedBumps.has(b.id));
+  const total = (product?.price ?? 0) + activeBumps.reduce((s, b) => s + b.price, 0);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setCharge(null);
+      setLoading(false);
+      setFormErrors({});
+    }
+  }, [open]);
 
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof CheckoutFormData, string>> = {};
@@ -84,32 +121,39 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
     return Object.keys(errors).length === 0;
   };
 
-  const { data: dbBumps } = useOrderBumps();
-  const { data: settings } = useSiteSettings();
+  const handleGeneratePix = async () => {
+    if (!product) return;
+    if (!validateForm()) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sigilopay-create-pix", {
+        body: {
+          amount: product.price,
+          product_name: product.name,
+          buyer: {
+            name: buyerForm.name.trim(),
+            email: buyerForm.email.trim(),
+            document: buyerForm.cpf,
+            phone: buyerForm.phone,
+          },
+          bumps: activeBumps.map((b) => ({ id: b.id, name: b.name, price: b.price })),
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.pix?.code) throw new Error(data?.error || "Falha ao gerar PIX");
 
-  const bumps: OrderBumpItem[] = (dbBumps || []).map((b) => ({
-    id: b.id,
-    name: b.name,
-    description: b.description || "",
-    price: Number(b.price),
-    originalPrice: b.original_price ? Number(b.original_price) : undefined,
-  }));
-
-  const pixKey = settings?.pix_key || "198871e4-f73c-4643-bb1d-3d3fafa2aa18";
-  const merchantName = settings?.pix_merchant_name || "PURA SENSI";
-  const merchantCity = settings?.pix_merchant_city || "SAO PAULO";
-
-  const toggleBump = useCallback((id: string) => {
-    setSelectedBumps((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const activeBumps = bumps.filter((b) => selectedBumps.has(b.id));
-  const total = (product?.price ?? 0) + activeBumps.reduce((s, b) => s + b.price, 0);
+      setCharge({
+        transactionId: data.transactionId,
+        pixCode: data.pix.code,
+        pixImage: data.pix.image,
+        amount: data.amount,
+      });
+    } catch (e) {
+      toast.error((e as Error).message || "Erro ao gerar cobrança PIX");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!product) return null;
 
@@ -146,35 +190,59 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">Pagamento exclusivo via PIX</p>
-              <p className="text-xs text-muted-foreground">Rápido, seguro e sem taxas</p>
+              <p className="text-xs text-muted-foreground">Processado pela SigiloPay · sem taxas</p>
             </div>
           </div>
 
-          <div className="mt-3">
-            <CheckoutForm form={buyerForm} onChange={(f) => { setBuyerForm(f); if (Object.keys(formErrors).length) setFormErrors({}); }} errors={formErrors} />
-          </div>
+          {!charge ? (
+            <>
+              <div className="mt-3">
+                <CheckoutForm
+                  form={buyerForm}
+                  onChange={(f) => { setBuyerForm(f); if (Object.keys(formErrors).length) setFormErrors({}); }}
+                  errors={formErrors}
+                />
+              </div>
 
-          {bumps.length > 0 && (
-            <div className="mt-3">
-              <OrderBump bumps={bumps} selected={selectedBumps} onToggle={toggleBump} formatPrice={formatBRL} />
+              {bumps.length > 0 && (
+                <div className="mt-3">
+                  <OrderBump bumps={bumps} selected={selectedBumps} onToggle={toggleBump} formatPrice={formatBRL} />
+                </div>
+              )}
+
+              <div className="mt-4 bg-card rounded-xl p-4 border border-border flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total</span>
+                <span className="text-2xl font-bold text-foreground">{formatBRL(total)}</span>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleGeneratePix}
+                disabled={loading}
+                className="w-full mt-4 h-14 rounded-xl font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Gerando PIX...</span>
+                ) : (
+                  <>Gerar código PIX</>
+                )}
+              </Button>
+            </>
+          ) : (
+            <div className="mt-4">
+              <SigiloPayCharge
+                productName={product.name}
+                amount={charge.amount}
+                pixCode={charge.pixCode}
+                pixImage={charge.pixImage}
+                transactionId={charge.transactionId}
+                onPaid={() => {
+                  onOpenChange(false);
+                  navigate("/pix/confirmacao");
+                }}
+              />
             </div>
           )}
-
-          <div className="mt-4">
-            <PixPaymentScreen
-              productName={product.name}
-              amount={total}
-              pixKey={pixKey}
-              merchantName={merchantName}
-              merchantCity={merchantCity}
-              onBack={() => onOpenChange(false)}
-              onConfirm={() => {
-                if (!validateForm()) return;
-                onOpenChange(false);
-                navigate("/pix/confirmacao");
-              }}
-            />
-          </div>
         </div>
       </SheetContent>
     </Sheet>
