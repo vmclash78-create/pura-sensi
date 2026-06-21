@@ -4,6 +4,7 @@ import { Copy, Check, QrCode, Loader2, ShieldCheck, Lock, CheckCircle2 } from "l
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import QRCode from "qrcode";
 
 interface Props {
   productName: string;
