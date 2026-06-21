@@ -68,8 +68,8 @@ Deno.serve(async (req) => {
       client: {
         name: b.name.trim(),
         email: b.email.trim(),
-        phone: b.phone,
-        document: b.document,
+        phone: phoneDigits,
+        document: docDigits,
       },
       products,
       metadata: { source: "pura-sensi-linkinbio" },
