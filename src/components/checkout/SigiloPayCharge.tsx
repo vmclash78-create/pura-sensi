@@ -21,6 +21,29 @@ const formatBRL = (v: number) =>
 const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId, onPaid }: Props) => {
   const [copied, setCopied] = useState(false);
   const [paid, setPaid] = useState(false);
+  const [qrSrc, setQrSrc] = useState<string | null>(null);
+
+  // Normalize pixImage (might be raw base64) or generate QR from pixCode
+  useEffect(() => {
+    let cancelled = false;
+    const normalize = (img?: string) => {
+      if (!img) return null;
+      if (img.startsWith("data:")) return img;
+      if (img.startsWith("http")) return img;
+      return `data:image/png;base64,${img}`;
+    };
+    const fromProvider = normalize(pixImage);
+    if (fromProvider) {
+      setQrSrc(fromProvider);
+      return;
+    }
+    if (pixCode) {
+      QRCode.toDataURL(pixCode, { width: 320, margin: 1, errorCorrectionLevel: "M" })
+        .then((url) => { if (!cancelled) setQrSrc(url); })
+        .catch((e) => console.error("QR gen error", e));
+    }
+    return () => { cancelled = true; };
+  }, [pixImage, pixCode]);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(pixCode);
