@@ -26,6 +26,40 @@ interface PaymentModalProps {
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
+
+const isSameDigitSequence = (value: string) => /^(\d)\1+$/.test(value);
+
+const isValidCpf = (cpf: string) => {
+  if (cpf.length !== 11 || isSameDigitSequence(cpf)) return false;
+  const calcDigit = (length: number) => {
+    const sum = cpf
+      .slice(0, length)
+      .split("")
+      .reduce((acc, digit, index) => acc + Number(digit) * (length + 1 - index), 0);
+    const digit = (sum * 10) % 11;
+    return digit === 10 ? 0 : digit;
+  };
+  return calcDigit(9) === Number(cpf[9]) && calcDigit(10) === Number(cpf[10]);
+};
+
+const isValidCnpj = (cnpj: string) => {
+  if (cnpj.length !== 14 || isSameDigitSequence(cnpj)) return false;
+  const calcDigit = (base: string, weights: number[]) => {
+    const sum = base
+      .split("")
+      .reduce((acc, digit, index) => acc + Number(digit) * weights[index], 0);
+    const remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  };
+  const firstDigit = calcDigit(cnpj.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  const secondDigit = calcDigit(cnpj.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  return firstDigit === Number(cnpj[12]) && secondDigit === Number(cnpj[13]);
+};
+
+const isValidDocument = (document: string) =>
+  document.length === 11 ? isValidCpf(document) : document.length === 14 ? isValidCnpj(document) : false;
+
 const CountdownTimer = () => {
   const [seconds, setSeconds] = useState(300);
   useEffect(() => {
@@ -109,11 +143,11 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
     if (!buyerForm.name.trim() || buyerForm.name.trim().length < 3) {
       errors.name = "Informe seu nome completo";
     }
-    const cpfDigits = buyerForm.cpf.replace(/\D/g, "");
-    if (cpfDigits.length !== 11 && cpfDigits.length !== 14) {
-      errors.cpf = "Informe um CPF ou CNPJ válido";
+    const cpfDigits = onlyDigits(buyerForm.cpf);
+    if (!isValidDocument(cpfDigits)) {
+      errors.cpf = "Informe um CPF/CNPJ real e válido";
     }
-    const phoneDigits = buyerForm.phone.replace(/\D/g, "");
+    const phoneDigits = onlyDigits(buyerForm.phone);
     if (phoneDigits.length < 10) {
       errors.phone = "Informe um celular válido";
     }
@@ -139,7 +173,7 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
           bumps: activeBumps.map((b) => ({ id: b.id, name: b.name, price: b.price })),
         },
       });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(data?.error || error.message);
       if (!data?.pix?.code) throw new Error(data?.error || "Falha ao gerar PIX");
 
       setCharge({
