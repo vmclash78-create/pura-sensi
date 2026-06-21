@@ -4,6 +4,7 @@ import { Copy, Check, QrCode, Loader2, ShieldCheck, Lock, CheckCircle2 } from "l
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import QRCode from "qrcode";
 
 interface Props {
   productName: string;
@@ -20,6 +21,29 @@ const formatBRL = (v: number) =>
 const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId, onPaid }: Props) => {
   const [copied, setCopied] = useState(false);
   const [paid, setPaid] = useState(false);
+  const [qrSrc, setQrSrc] = useState<string | null>(null);
+
+  // Normalize pixImage (might be raw base64) or generate QR from pixCode
+  useEffect(() => {
+    let cancelled = false;
+    const normalize = (img?: string) => {
+      if (!img) return null;
+      if (img.startsWith("data:")) return img;
+      if (img.startsWith("http")) return img;
+      return `data:image/png;base64,${img}`;
+    };
+    const fromProvider = normalize(pixImage);
+    if (fromProvider) {
+      setQrSrc(fromProvider);
+      return;
+    }
+    if (pixCode) {
+      QRCode.toDataURL(pixCode, { width: 320, margin: 1, errorCorrectionLevel: "M" })
+        .then((url) => { if (!cancelled) setQrSrc(url); })
+        .catch((e) => console.error("QR gen error", e));
+    }
+    return () => { cancelled = true; };
+  }, [pixImage, pixCode]);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(pixCode);
@@ -60,9 +84,9 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className="flex flex-col items-center"
     >
       <div className="w-full max-w-lg bg-card rounded-2xl border border-border overflow-hidden shadow-lg">
@@ -85,13 +109,23 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
         </div>
 
         <div className="flex flex-col items-center py-6 px-5">
-          {pixImage ? (
-            <div className="border-2 border-primary/20 rounded-2xl p-3 bg-white shadow-sm">
-              <img src={pixImage} alt="QR Code PIX" className="w-64 h-64 object-contain" />
-            </div>
-          ) : (
-            <div className="w-64 h-64 bg-secondary rounded-2xl animate-pulse" />
-          )}
+          <div className="relative border border-primary/20 rounded-2xl p-3 bg-white shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.4)]">
+            {qrSrc ? (
+              <motion.img
+                key={qrSrc}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                src={qrSrc}
+                alt="QR Code PIX"
+                className="w-64 h-64 object-contain"
+              />
+            ) : (
+              <div className="w-64 h-64 flex items-center justify-center bg-secondary/40 rounded-lg">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            )}
+          </div>
 
           <p className="text-sm text-muted-foreground mt-4 text-center max-w-xs">
             Abra o app do seu banco e pague com o <strong className="text-foreground">QR Code</strong> ou copie o <strong className="text-foreground">código PIX</strong> abaixo
