@@ -143,6 +143,63 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          amount: number
+          buyer_document: string
+          buyer_email: string
+          buyer_name: string
+          buyer_phone: string
+          created_at: string
+          id: string
+          identifier: string
+          metadata: Json | null
+          paid_at: string | null
+          pix_code: string | null
+          pix_image: string | null
+          product_name: string
+          status: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_document: string
+          buyer_email: string
+          buyer_name: string
+          buyer_phone: string
+          created_at?: string
+          id?: string
+          identifier: string
+          metadata?: Json | null
+          paid_at?: string | null
+          pix_code?: string | null
+          pix_image?: string | null
+          product_name: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_document?: string
+          buyer_email?: string
+          buyer_name?: string
+          buyer_phone?: string
+          created_at?: string
+          id?: string
+          identifier?: string
+          metadata?: Json | null
+          paid_at?: string | null
+          pix_code?: string | null
+          pix_image?: string | null
+          product_name?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
