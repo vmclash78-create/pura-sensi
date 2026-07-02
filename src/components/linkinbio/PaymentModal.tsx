@@ -1,14 +1,17 @@
 import { useState, useCallback, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { ChevronLeft, Clock, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
 import SigiloPayCharge from "@/components/checkout/SigiloPayCharge";
+import CountdownTimer from "@/components/checkout/CountdownTimer";
 import { Button } from "@/components/ui/button";
 import { useOrderBumps } from "@/hooks/useOrderBumps";
-import { supabase } from "@/integrations/supabase/client";
+import { useSigiloPayCharge } from "@/hooks/useSigiloPayCharge";
+import { formatBRL } from "@/lib/format";
+import { onlyDigits, isValidDocument } from "@/lib/document";
 
 interface PaymentProduct {
   name: string;
@@ -23,86 +26,18 @@ interface PaymentModalProps {
   product: PaymentProduct | null;
 }
 
-const formatBRL = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_NAME_LENGTH = 3;
+const MIN_PHONE_DIGITS = 10;
 
-const onlyDigits = (value: string) => value.replace(/\D/g, "");
-
-const isSameDigitSequence = (value: string) => /^(\d)\1+$/.test(value);
-
-const isValidCpf = (cpf: string) => {
-  if (cpf.length !== 11 || isSameDigitSequence(cpf)) return false;
-  const calcDigit = (length: number) => {
-    const sum = cpf
-      .slice(0, length)
-      .split("")
-      .reduce((acc, digit, index) => acc + Number(digit) * (length + 1 - index), 0);
-    const digit = (sum * 10) % 11;
-    return digit === 10 ? 0 : digit;
-  };
-  return calcDigit(9) === Number(cpf[9]) && calcDigit(10) === Number(cpf[10]);
-};
-
-const isValidCnpj = (cnpj: string) => {
-  if (cnpj.length !== 14 || isSameDigitSequence(cnpj)) return false;
-  const calcDigit = (base: string, weights: number[]) => {
-    const sum = base
-      .split("")
-      .reduce((acc, digit, index) => acc + Number(digit) * weights[index], 0);
-    const remainder = sum % 11;
-    return remainder < 2 ? 0 : 11 - remainder;
-  };
-  const firstDigit = calcDigit(cnpj.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
-  const secondDigit = calcDigit(cnpj.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
-  return firstDigit === Number(cnpj[12]) && secondDigit === Number(cnpj[13]);
-};
-
-const isValidDocument = (document: string) =>
-  document.length === 11 ? isValidCpf(document) : document.length === 14 ? isValidCnpj(document) : false;
-
-const CountdownTimer = () => {
-  const [seconds, setSeconds] = useState(300);
-  useEffect(() => {
-    const interval = setInterval(() => setSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
-    return () => clearInterval(interval);
-  }, []);
-  const min = String(Math.floor(seconds / 60)).padStart(2, "0");
-  const sec = String(seconds % 60).padStart(2, "0");
-  return (
-    <div className="flex items-center gap-3 bg-secondary text-foreground px-4 py-2">
-      <div className="flex items-center gap-2">
-        <div className="text-center">
-          <span className="text-lg font-bold font-mono">{min}</span>
-          <span className="block text-[10px] uppercase text-muted-foreground">min</span>
-        </div>
-        <span className="text-lg font-bold">:</span>
-        <div className="text-center">
-          <span className="text-lg font-bold font-mono">{sec}</span>
-          <span className="block text-[10px] uppercase text-muted-foreground">seg</span>
-        </div>
-      </div>
-      <Clock className="w-4 h-4 text-muted-foreground" />
-      <span className="text-xs font-medium text-muted-foreground">Seu tempo está acabando!</span>
-    </div>
-  );
-};
-
-interface ChargeData {
-  transactionId: string;
-  pixCode: string;
-  pixImage?: string;
-  amount: number;
-}
+const EMPTY_FORM: CheckoutFormData = { email: "", name: "", cpf: "", phone: "" };
 
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const navigate = useNavigate();
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
-  const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
-    email: "", name: "", cpf: "", phone: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [charge, setCharge] = useState<ChargeData | null>(null);
+  const [buyerForm, setBuyerForm] = useState<CheckoutFormData>(EMPTY_FORM);
+  const { charge, isLoading, createCharge, reset: resetCharge } = useSigiloPayCharge();
 
   const { data: dbBumps } = useOrderBumps();
 
@@ -129,28 +64,26 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   // Reset state when modal closes — bug: selectedBumps e buyerForm vazavam entre aberturas de produtos diferentes
   useEffect(() => {
     if (!open) {
-      setCharge(null);
-      setLoading(false);
+      resetCharge();
       setFormErrors({});
       setSelectedBumps(new Set());
-      setBuyerForm({ email: "", name: "", cpf: "", phone: "" });
+      setBuyerForm(EMPTY_FORM);
     }
-  }, [open]);
+  }, [open, resetCharge]);
 
+  /** Valida email/nome/CPF/telefone e devolve true se passou. Popula formErrors. */
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof CheckoutFormData, string>> = {};
-    if (!buyerForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerForm.email.trim())) {
+    if (!buyerForm.email.trim() || !EMAIL_REGEX.test(buyerForm.email.trim())) {
       errors.email = "Informe um e-mail válido";
     }
-    if (!buyerForm.name.trim() || buyerForm.name.trim().length < 3) {
+    if (!buyerForm.name.trim() || buyerForm.name.trim().length < MIN_NAME_LENGTH) {
       errors.name = "Informe seu nome completo";
     }
-    const cpfDigits = onlyDigits(buyerForm.cpf);
-    if (!isValidDocument(cpfDigits)) {
+    if (!isValidDocument(onlyDigits(buyerForm.cpf))) {
       errors.cpf = "Informe um CPF/CNPJ real e válido";
     }
-    const phoneDigits = onlyDigits(buyerForm.phone);
-    if (phoneDigits.length < 10) {
+    if (onlyDigits(buyerForm.phone).length < MIN_PHONE_DIGITS) {
       errors.phone = "Informe um celular válido";
     }
     setFormErrors(errors);
@@ -160,34 +93,20 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const handleGeneratePix = async () => {
     if (!product) return;
     if (!validateForm()) return;
-    setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("sigilopay-create-pix", {
-        body: {
-          amount: product.price,
-          product_name: product.name,
-          buyer: {
-            name: buyerForm.name.trim(),
-            email: buyerForm.email.trim(),
-            document: buyerForm.cpf,
-            phone: buyerForm.phone,
-          },
-          bumps: activeBumps.map((b) => ({ id: b.id, name: b.name, price: b.price })),
+      await createCharge({
+        amount: product.price,
+        product_name: product.name,
+        buyer: {
+          name: buyerForm.name.trim(),
+          email: buyerForm.email.trim(),
+          document: buyerForm.cpf,
+          phone: buyerForm.phone,
         },
-      });
-      if (error) throw new Error(data?.error || error.message);
-      if (!data?.pix?.code) throw new Error(data?.error || "Falha ao gerar PIX");
-
-      setCharge({
-        transactionId: data.transactionId,
-        pixCode: data.pix.code,
-        pixImage: data.pix.image,
-        amount: data.amount,
+        bumps: activeBumps.map((b) => ({ id: b.id, name: b.name, price: b.price })),
       });
     } catch (e) {
-      toast.error((e as Error).message || "Erro ao gerar cobrança PIX");
-    } finally {
-      setLoading(false);
+      toast.error((e as Error).message);
     }
   };
 
@@ -254,10 +173,10 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
               <Button
                 type="button"
                 onClick={handleGeneratePix}
-                disabled={loading}
+                disabled={isLoading}
                 className="w-full mt-4 h-14 rounded-xl font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
               >
-                {loading ? (
+                {isLoading ? (
                   <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Gerando PIX...</span>
                 ) : (
                   <>Gerar código PIX</>

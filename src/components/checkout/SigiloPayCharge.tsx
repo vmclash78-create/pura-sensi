@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import QRCode from "qrcode";
+import { formatBRL } from "@/lib/format";
+import {
+  PIX_POLLING_INTERVAL_MS,
+  PIX_ONPAID_REDIRECT_MS,
+  COPY_FEEDBACK_MS,
+} from "@/lib/constants";
 
 interface Props {
   productName: string;
@@ -14,9 +20,6 @@ interface Props {
   transactionId: string;
   onPaid: () => void;
 }
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId, onPaid }: Props) => {
   const [copied, setCopied] = useState(false);
