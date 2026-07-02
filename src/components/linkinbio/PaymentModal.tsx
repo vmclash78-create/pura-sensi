@@ -126,12 +126,14 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const activeBumps = bumps.filter((b) => selectedBumps.has(b.id));
   const total = (product?.price ?? 0) + activeBumps.reduce((s, b) => s + b.price, 0);
 
-  // Reset state when modal closes
+  // Reset state when modal closes — bug: selectedBumps e buyerForm vazavam entre aberturas de produtos diferentes
   useEffect(() => {
     if (!open) {
       setCharge(null);
       setLoading(false);
       setFormErrors({});
+      setSelectedBumps(new Set());
+      setBuyerForm({ email: "", name: "", cpf: "", phone: "" });
     }
   }, [open]);
 
