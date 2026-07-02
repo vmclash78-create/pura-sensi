@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Copy, Check, QrCode, Loader2, ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,12 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
     setTimeout(() => setCopied(false), 2500);
   }, [pixCode]);
 
+  // Bug: `onPaid` era passado inline pelo pai, mudando a cada render → o effect
+  // recriava o interval a cada ciclo (chamadas de polling em excesso). Guardamos
+  // a referência mais recente num ref e removemos onPaid das deps.
+  const onPaidRef = useRef(onPaid);
+  useEffect(() => { onPaidRef.current = onPaid; }, [onPaid]);
+
   // Polling status a cada 5s
   useEffect(() => {
     if (!transactionId || paid) return;
@@ -67,7 +73,7 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
         if (s === "OK" || s === "PAID") {
           setPaid(true);
           toast.success("Pagamento confirmado!");
-          setTimeout(() => onPaid(), 1500);
+          setTimeout(() => onPaidRef.current(), 1500);
         }
       } catch (e) {
         console.error("polling error", e);
@@ -80,7 +86,7 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
       cancelled = true;
       clearInterval(interval);
     };
-  }, [transactionId, paid, onPaid]);
+  }, [transactionId, paid]);
 
   return (
     <motion.div
