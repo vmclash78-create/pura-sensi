@@ -3,18 +3,15 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import bgLightning from "@/assets/bg-lightning.jpg";
 import logo from "@/assets/logo-purasensi.png";
-import avatar from "@/assets/avatar-purasensi.jpeg";
 import Particles from "@/components/linkinbio/Particles";
-import LinkCard, { type LinkData } from "@/components/linkinbio/LinkCard";
+import LinkCard from "@/components/linkinbio/LinkCard";
 import PaymentModal, { type PaymentProduct } from "@/components/linkinbio/PaymentModal";
 import { AndroidIcon, AppleIcon, TargetIcon } from "@/components/linkinbio/icons";
 import { useLinkProducts } from "@/hooks/useLinkProducts";
+import { formatBRL } from "@/lib/format";
+import { PURA_SENSI_PROFILE } from "@/lib/constants";
 
-const PROFILE = {
-  name: "Pura Sensi",
-  avatar: avatar,
-  instagram: "https://www.instagram.com/purasensi.xit?igsh=czNvaHhxbzYyMXA5",
-};
+const PROFILE = PURA_SENSI_PROFILE;
 
 const container = {
   hidden: {},
@@ -36,9 +33,6 @@ const logoAnim = {
     transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
-
-const formatBRL = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 const getIcon = (type: string) => {
   switch (type) {
