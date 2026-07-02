@@ -52,7 +52,7 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
     navigator.clipboard.writeText(pixCode);
     setCopied(true);
     toast.success("Código PIX copiado!");
-    setTimeout(() => setCopied(false), 2500);
+    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
   }, [pixCode]);
 
   // Bug: `onPaid` era passado inline pelo pai, mudando a cada render → o effect
@@ -76,7 +76,7 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
         if (s === "OK" || s === "PAID") {
           setPaid(true);
           toast.success("Pagamento confirmado!");
-          setTimeout(() => onPaidRef.current(), 1500);
+          setTimeout(() => onPaidRef.current(), PIX_ONPAID_REDIRECT_MS);
         }
       } catch (e) {
         console.error("polling error", e);
@@ -84,7 +84,7 @@ const SigiloPayCharge = ({ productName, amount, pixCode, pixImage, transactionId
     };
 
     check();
-    const interval = setInterval(check, 5000);
+    const interval = setInterval(check, PIX_POLLING_INTERVAL_MS);
     return () => {
       cancelled = true;
       clearInterval(interval);
