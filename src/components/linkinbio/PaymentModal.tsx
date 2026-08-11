@@ -1,12 +1,17 @@
 import { useState, useCallback, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { ChevronLeft, Clock } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
-import PixPaymentScreen from "@/components/checkout/PixPaymentScreen";
+import SigiloPayCharge from "@/components/checkout/SigiloPayCharge";
+import CountdownTimer from "@/components/checkout/CountdownTimer";
+import { Button } from "@/components/ui/button";
 import { useOrderBumps } from "@/hooks/useOrderBumps";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useSigiloPayCharge } from "@/hooks/useSigiloPayCharge";
+import { formatBRL } from "@/lib/format";
+import { onlyDigits, isValidDocument } from "@/lib/document";
 
 interface PaymentProduct {
   name: string;
@@ -21,71 +26,20 @@ interface PaymentModalProps {
   product: PaymentProduct | null;
 }
 
-const formatBRL = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_NAME_LENGTH = 3;
+const MIN_PHONE_DIGITS = 10;
 
-const CountdownTimer = () => {
-  const [seconds, setSeconds] = useState(300);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((s) => (s > 0 ? s - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const min = String(Math.floor(seconds / 60)).padStart(2, "0");
-  const sec = String(seconds % 60).padStart(2, "0");
-
-  return (
-    <div className="flex items-center gap-3 bg-secondary text-foreground px-4 py-2">
-      <div className="flex items-center gap-2">
-        <div className="text-center">
-          <span className="text-lg font-bold font-mono">{min}</span>
-          <span className="block text-[10px] uppercase text-muted-foreground">min</span>
-        </div>
-        <span className="text-lg font-bold">:</span>
-        <div className="text-center">
-          <span className="text-lg font-bold font-mono">{sec}</span>
-          <span className="block text-[10px] uppercase text-muted-foreground">seg</span>
-        </div>
-      </div>
-      <Clock className="w-4 h-4 text-muted-foreground" />
-      <span className="text-xs font-medium text-muted-foreground">Seu tempo está acabando!</span>
-    </div>
-  );
-};
+const EMPTY_FORM: CheckoutFormData = { email: "", name: "", cpf: "", phone: "" };
 
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const navigate = useNavigate();
   const [selectedBumps, setSelectedBumps] = useState<Set<string>>(new Set());
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
-  const [buyerForm, setBuyerForm] = useState<CheckoutFormData>({
-    email: "", name: "", cpf: "", phone: "",
-  });
-
-  const validateForm = (): boolean => {
-    const errors: Partial<Record<keyof CheckoutFormData, string>> = {};
-    if (!buyerForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerForm.email.trim())) {
-      errors.email = "Informe um e-mail válido";
-    }
-    if (!buyerForm.name.trim() || buyerForm.name.trim().length < 3) {
-      errors.name = "Informe seu nome completo";
-    }
-    const cpfDigits = buyerForm.cpf.replace(/\D/g, "");
-    if (cpfDigits.length !== 11 && cpfDigits.length !== 14) {
-      errors.cpf = "Informe um CPF ou CNPJ válido";
-    }
-    const phoneDigits = buyerForm.phone.replace(/\D/g, "");
-    if (phoneDigits.length < 10) {
-      errors.phone = "Informe um celular válido";
-    }
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  const [buyerForm, setBuyerForm] = useState<CheckoutFormData>(EMPTY_FORM);
+  const { charge, isLoading, createCharge, reset: resetCharge } = useSigiloPayCharge();
 
   const { data: dbBumps } = useOrderBumps();
-  const { data: settings } = useSiteSettings();
 
   const bumps: OrderBumpItem[] = (dbBumps || []).map((b) => ({
     id: b.id,
@@ -94,10 +48,6 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
     price: Number(b.price),
     originalPrice: b.original_price ? Number(b.original_price) : undefined,
   }));
-
-  const pixKey = settings?.pix_key || "198871e4-f73c-4643-bb1d-3d3fafa2aa18";
-  const merchantName = settings?.pix_merchant_name || "PURA SENSI";
-  const merchantCity = settings?.pix_merchant_city || "SAO PAULO";
 
   const toggleBump = useCallback((id: string) => {
     setSelectedBumps((prev) => {
@@ -110,6 +60,55 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
 
   const activeBumps = bumps.filter((b) => selectedBumps.has(b.id));
   const total = (product?.price ?? 0) + activeBumps.reduce((s, b) => s + b.price, 0);
+
+  // Reset state when modal closes — bug: selectedBumps e buyerForm vazavam entre aberturas de produtos diferentes
+  useEffect(() => {
+    if (!open) {
+      resetCharge();
+      setFormErrors({});
+      setSelectedBumps(new Set());
+      setBuyerForm(EMPTY_FORM);
+    }
+  }, [open, resetCharge]);
+
+  /** Valida email/nome/CPF/telefone e devolve true se passou. Popula formErrors. */
+  const validateForm = (): boolean => {
+    const errors: Partial<Record<keyof CheckoutFormData, string>> = {};
+    if (!buyerForm.email.trim() || !EMAIL_REGEX.test(buyerForm.email.trim())) {
+      errors.email = "Informe um e-mail válido";
+    }
+    if (!buyerForm.name.trim() || buyerForm.name.trim().length < MIN_NAME_LENGTH) {
+      errors.name = "Informe seu nome completo";
+    }
+    if (!isValidDocument(onlyDigits(buyerForm.cpf))) {
+      errors.cpf = "Informe um CPF/CNPJ real e válido";
+    }
+    if (onlyDigits(buyerForm.phone).length < MIN_PHONE_DIGITS) {
+      errors.phone = "Informe um celular válido";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleGeneratePix = async () => {
+    if (!product) return;
+    if (!validateForm()) return;
+    try {
+      await createCharge({
+        amount: product.price,
+        product_name: product.name,
+        buyer: {
+          name: buyerForm.name.trim(),
+          email: buyerForm.email.trim(),
+          document: buyerForm.cpf,
+          phone: buyerForm.phone,
+        },
+        bumps: activeBumps.map((b) => ({ id: b.id, name: b.name, price: b.price })),
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
 
   if (!product) return null;
 
@@ -146,35 +145,59 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">Pagamento exclusivo via PIX</p>
-              <p className="text-xs text-muted-foreground">Rápido, seguro e sem taxas</p>
+              <p className="text-xs text-muted-foreground">Processado pela SigiloPay · sem taxas</p>
             </div>
           </div>
 
-          <div className="mt-3">
-            <CheckoutForm form={buyerForm} onChange={(f) => { setBuyerForm(f); if (Object.keys(formErrors).length) setFormErrors({}); }} errors={formErrors} />
-          </div>
+          {!charge ? (
+            <>
+              <div className="mt-3">
+                <CheckoutForm
+                  form={buyerForm}
+                  onChange={(f) => { setBuyerForm(f); if (Object.keys(formErrors).length) setFormErrors({}); }}
+                  errors={formErrors}
+                />
+              </div>
 
-          {bumps.length > 0 && (
-            <div className="mt-3">
-              <OrderBump bumps={bumps} selected={selectedBumps} onToggle={toggleBump} formatPrice={formatBRL} />
+              {bumps.length > 0 && (
+                <div className="mt-3">
+                  <OrderBump bumps={bumps} selected={selectedBumps} onToggle={toggleBump} formatPrice={formatBRL} />
+                </div>
+              )}
+
+              <div className="mt-4 bg-card rounded-xl p-4 border border-border flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total</span>
+                <span className="text-2xl font-bold text-foreground">{formatBRL(total)}</span>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleGeneratePix}
+                disabled={isLoading}
+                className="w-full mt-4 h-14 rounded-xl font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Gerando PIX...</span>
+                ) : (
+                  <>Gerar código PIX</>
+                )}
+              </Button>
+            </>
+          ) : (
+            <div className="mt-4">
+              <SigiloPayCharge
+                productName={product.name}
+                amount={charge.amount}
+                pixCode={charge.pixCode}
+                pixImage={charge.pixImage}
+                transactionId={charge.transactionId}
+                onPaid={() => {
+                  onOpenChange(false);
+                  navigate("/pix/confirmacao");
+                }}
+              />
             </div>
           )}
-
-          <div className="mt-4">
-            <PixPaymentScreen
-              productName={product.name}
-              amount={total}
-              pixKey={pixKey}
-              merchantName={merchantName}
-              merchantCity={merchantCity}
-              onBack={() => onOpenChange(false)}
-              onConfirm={() => {
-                if (!validateForm()) return;
-                onOpenChange(false);
-                navigate("/pix/confirmacao");
-              }}
-            />
-          </div>
         </div>
       </SheetContent>
     </Sheet>
