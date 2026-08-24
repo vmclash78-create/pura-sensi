@@ -11,7 +11,7 @@ import { AndroidIcon, AppleIcon, TargetIcon } from "@/components/linkinbio/icons
 import { useLinkProducts } from "@/hooks/useLinkProducts";
 
 const PROFILE = {
-  name: "Pura Sensi",
+  name: " \u200b",
   avatar: avatar,
   instagram: "https://www.instagram.com/purasensi.xit?igsh=czNvaHhxbzYyMXA5",
 };
