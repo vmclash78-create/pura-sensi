@@ -4,9 +4,10 @@ import { useCategories } from "@/hooks/useCategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/constants";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package } from "lucide-react";
 import { toast } from "sonner";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { motion } from "framer-motion";
 import {
   AlertDialog,
   AlertDialogAction,
