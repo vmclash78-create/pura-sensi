@@ -104,7 +104,7 @@ const LinkInBio = () => {
         </motion.div>
 
         <motion.h1 variants={item} className="text-2xl md:text-3xl font-bold tracking-[0.25em] text-foreground mb-2 drop-shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
-          {PROFILE.name}
+          Me fale a senha do Adm purasensi@gmail.com
         </motion.h1>
 
         <motion.div variants={item} className="mb-8">
