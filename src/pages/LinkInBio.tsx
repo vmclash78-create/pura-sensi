@@ -92,7 +92,7 @@ const LinkInBio = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent z-[1]" />
       <Particles />
 
-      <motion.div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex flex-col items-center" variants={container} initial="hidden" animate="show">
+      <motion.div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex flex-col items-center" variants={container} initial="show" animate="show">
         <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 drop-shadow-[0_0_30px_hsl(var(--primary)/0.3)]" variants={logoAnim} />
 
         <motion.div variants={item} className="mb-3 relative">
