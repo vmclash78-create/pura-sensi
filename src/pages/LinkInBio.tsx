@@ -49,7 +49,6 @@ const getIcon = (type: string) => {
 };
 
 const LinkInBio = () => {
-  const [bgOpacity, setBgOpacity] = useState(0.4);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PaymentProduct | null>(null);
   const { data: products } = useLinkProducts();
@@ -73,16 +72,6 @@ const LinkInBio = () => {
     setPaymentOpen(true);
   };
 
-  useEffect(() => {
-    const flash = () => {
-      setBgOpacity(0.25);
-      setTimeout(() => setBgOpacity(0.4), 150);
-      setTimeout(() => setBgOpacity(0.3), 300);
-      setTimeout(() => setBgOpacity(0.4), 450);
-    };
-    const interval = setInterval(flash, Math.random() * 4000 + 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
