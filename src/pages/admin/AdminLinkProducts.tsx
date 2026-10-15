@@ -19,7 +19,7 @@ const formatBRL = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 const AdminLinkProducts = () => {
-  const { data: products, isLoading } = useLinkProducts();
+  const { data: products, isLoading } = useLinkProducts(true);
   const upsert = useUpsertLinkProduct();
   const remove = useDeleteLinkProduct();
   const [editing, setEditing] = useState<Partial<LinkProduct> | null>(null);
