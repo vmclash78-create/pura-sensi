@@ -58,7 +58,7 @@ const LinkCard = ({ link, index, onClick }: LinkCardProps) => {
       onClick={handleClick}
       whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97 }}
-      className="relative flex items-center gap-4 w-full px-5 py-4 rounded-2xl bg-card/50 backdrop-blur-xl border border-border card-lift group overflow-hidden text-left cursor-pointer"
+      className="relative flex items-center gap-4 w-full px-5 py-4 rounded-2xl bg-card/50 backdrop-blur-xl border border-primary/20 card-lift group overflow-hidden text-left cursor-pointer"
       style={{ willChange: "transform" }}
     >
       <motion.div

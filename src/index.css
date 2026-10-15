@@ -34,8 +34,8 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 100% / 0.1;
-    --input: 0 0% 100% / 0.12;
+    --border: 282 25% 18%;
+    --input: 282 25% 20%;
     --ring: 268 90% 60%;
 
     --radius: 1rem;
@@ -49,7 +49,7 @@
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 282 30% 16%;
     --sidebar-accent-foreground: 280 10% 97%;
-    --sidebar-border: 0 0% 100% / 0.1;
+    --sidebar-border: 282 25% 18%;
     --sidebar-ring: 268 90% 60%;
   }
 }
