@@ -27,8 +27,8 @@ const LinkCard = ({ link, index, onClick }: LinkCardProps) => {
   const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const glowX = useTransform(mouseX, (v) => `${v}px`);
-  const glowY = useTransform(mouseY, (v) => `${v}px`);
+  const glowX = useTransform(mouseX, (v) => `${v - 48}px`);
+  const glowY = useTransform(mouseY, (v) => `${v - 48}px`);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -61,7 +61,7 @@ const LinkCard = ({ link, index, onClick }: LinkCardProps) => {
     >
       <motion.div
         className="absolute w-24 h-24 rounded-full bg-primary/15 blur-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ left: glowX, top: glowY, x: "-50%", y: "-50%" }}
+        style={{ left: 0, top: 0, x: glowX, y: glowY }}
       />
 
       {ripple && (
