@@ -4,7 +4,7 @@ import { useState } from "react";
 import logo from "@/assets/logo-purasensi.png";
 import avatar from "@/assets/avatar-purasensi.jpeg";
 import Particles from "@/components/linkinbio/Particles";
-import LinkCard, { type LinkData } from "@/components/linkinbio/LinkCard";
+import LinkCard from "@/components/linkinbio/LinkCard";
 import PaymentModal, { type PaymentProduct } from "@/components/linkinbio/PaymentModal";
 import { AndroidIcon, AppleIcon, TargetIcon } from "@/components/linkinbio/icons";
 import { useLinkProducts } from "@/hooks/useLinkProducts";
@@ -80,11 +80,11 @@ const LinkInBio = () => {
       <Particles />
 
       <motion.div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex flex-col items-center" variants={container} initial="show" animate="show">
-        <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 animate-float-slow drop-shadow-[0_0_24px_hsl(var(--violet)/0.35)]" variants={logoAnim} />
+        <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 drop-shadow-[0_0_24px_hsl(var(--violet)/0.35)]" variants={logoAnim} />
 
         <motion.div variants={item} className="mb-3 relative">
-          <motion.div className="absolute -inset-1 rounded-full" style={{ background: "conic-gradient(from 0deg, hsl(var(--violet-light)), transparent 40%, transparent 60%, hsl(var(--violet)))" }} animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
-          <motion.div className="absolute -inset-2 rounded-full border border-primary/30" animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} />
+          <div aria-hidden className="absolute -inset-1 rounded-full" style={{ background: "conic-gradient(from 0deg, hsl(var(--violet-light)), transparent 40%, transparent 60%, hsl(var(--violet)))" }} />
+          <div aria-hidden className="absolute -inset-2 rounded-full border border-primary/20" />
           <div className="relative w-20 h-20 rounded-full border-2 border-primary overflow-hidden shadow-lg shadow-primary/40">
             <img src={PROFILE.avatar} alt={PROFILE.name} className="w-full h-full object-cover" />
           </div>
@@ -111,7 +111,7 @@ const LinkInBio = () => {
             <h2 className="text-lg font-bold tracking-widest text-foreground/80 mb-4 text-center uppercase">Mais Produtos</h2>
             <div className="grid grid-cols-2 gap-3">
               {extraProducts.map((p, i) => (
-                <motion.button key={i} type="button" onClick={() => openPayment({ name: p.name, price: p.price, description: p.desc })} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card/60 backdrop-blur-md border border-border/40 hover:border-primary/60 transition-all group cursor-pointer text-center">
+                <motion.button key={i} type="button" onClick={() => openPayment({ name: p.name, price: p.price, description: p.desc })} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card/90 border border-border/40 hover:border-primary/60 transition-all group cursor-pointer text-center">
                   <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{p.name}</span>
                   <span className="text-xs text-muted-foreground">{p.desc}</span>
                   <span className="text-base font-bold text-primary">{formatBRL(p.price)}</span>
