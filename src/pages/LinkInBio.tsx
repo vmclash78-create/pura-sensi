@@ -1,7 +1,7 @@
 import { Instagram } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import logo from "@/assets/logo-purasensi.png";
+import logo from "@/assets/logo-purasensi.webp";
 import avatar from "@/assets/avatar-purasensi.jpeg";
 import Particles from "@/components/linkinbio/Particles";
 import LinkCard from "@/components/linkinbio/LinkCard";
