@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,44 +6,51 @@
 
 @layer base {
   :root {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 95%;
+    --background: 285 45% 4%;
+    --foreground: 280 10% 97%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 95%;
+    --card: 282 40% 11%;
+    --card-foreground: 280 10% 97%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 282 40% 9%;
+    --popover-foreground: 280 10% 97%;
 
-    --primary: 217 80% 50%;
+    --primary: 270 85% 62%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 282 30% 16%;
+    --secondary-foreground: 280 10% 97%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 282 30% 14%;
+    --muted-foreground: 280 15% 72%;
 
-    --accent: 217 80% 50%;
+    --accent: 268 90% 58%;
     --accent-foreground: 0 0% 100%;
+
+    --violet: 268 90% 60%;
+    --violet-light: 270 80% 75%;
+    --violet-deep: 285 70% 28%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 217 80% 50%;
+    --border: 282 25% 18%;
+    --input: 282 25% 20%;
+    --ring: 268 90% 60%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 217 80% 50%;
+    --gradient-violet: linear-gradient(135deg, hsl(var(--violet-light)), hsl(var(--violet)) 45%, hsl(var(--violet-deep)));
+    --glow-violet: 0 0 120px 40px hsl(var(--violet) / 0.35);
+
+    --sidebar-background: 285 45% 6%;
+    --sidebar-foreground: 280 10% 97%;
+    --sidebar-primary: 268 90% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 18%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 217 80% 50%;
+    --sidebar-accent: 282 30% 16%;
+    --sidebar-accent-foreground: 280 10% 97%;
+    --sidebar-border: 282 25% 18%;
+    --sidebar-ring: 268 90% 60%;
   }
 }
 
@@ -52,18 +59,49 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
+    font-family: 'General Sans', ui-sans-serif, sans-serif;
+    background:
+      radial-gradient(ellipse at 20% 0%, hsl(var(--violet) / 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 30%, hsl(var(--violet-deep) / 0.25) 0%, transparent 50%),
+      hsl(var(--background));
+    background-attachment: fixed;
   }
   h1, h2, h3, h4 {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Clash Display', 'General Sans', sans-serif;
+    letter-spacing: -0.01em;
   }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-balance { text-wrap: balance; }
+  .bg-gradient-violet { background-image: var(--gradient-violet); }
+  .shadow-glow-violet { box-shadow: var(--glow-violet); }
+  .text-gradient-violet {
+    background: linear-gradient(90deg, hsl(var(--foreground)) 0%, hsl(var(--violet-light)) 25%, hsl(var(--foreground)) 50%, hsl(var(--violet-light)) 75%, hsl(var(--foreground)) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: text-shimmer 6s linear infinite;
+  }
+  .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+  .animate-pulse-glow { animation: pulse-glow 5s ease-in-out infinite; }
+  .card-lift { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  .card-lift:hover { border-color: hsl(var(--violet)); transform: translateY(-4px); box-shadow: 0 20px 50px -20px hsl(var(--violet) / 0.6); }
+  .shine { position: relative; overflow: hidden; }
+  .shine::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.15), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 3s ease-in-out infinite;
   }
 }
+
+@keyframes float-slow { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-14px) } }
+@keyframes pulse-glow { 0%,100% { opacity: .55; transform: scale(1) } 50% { opacity: .9; transform: scale(1.08) } }
+@keyframes shimmer { 0% { transform: translateX(-100%) } 100% { transform: translateX(100%) } }
+@keyframes text-shimmer { 0% { background-position: 100% 0 } 100% { background-position: -100% 0 } }
 
 #lovable-badge {
   display: none !important;

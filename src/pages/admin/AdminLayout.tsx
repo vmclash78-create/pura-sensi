@@ -3,7 +3,6 @@ import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { STORE_NAME } from "@/lib/constants";
 import { Package, Tag, Image, LogOut, Home, Link2, Zap, Settings, Menu, X, Shield } from "lucide-react";
-import bgLightning from "@/assets/bg-lightning.jpg";
 
 const navItems = [
   { to: "/admin", label: "Produtos", icon: Package, exact: true },
@@ -56,7 +55,7 @@ const AdminLayout = () => {
       >
         {/* Sidebar bg with lightning image like home page */}
         <div className="absolute inset-0">
-          <img src={bgLightning} alt="" className="w-full h-full object-cover opacity-20" />
+          
           <div className="absolute inset-0 bg-background/90" />
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
         </div>
@@ -133,7 +132,7 @@ const AdminLayout = () => {
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Background matching home page */}
         <div className="absolute inset-0 z-0">
-          <img src={bgLightning} alt="" className="w-full h-full object-cover opacity-15" />
+          
           <div className="absolute inset-0 bg-background/85" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/80" />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent" />

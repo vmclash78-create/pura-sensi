@@ -1,7 +1,6 @@
 import { Instagram } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import bgLightning from "@/assets/bg-lightning.jpg";
 import logo from "@/assets/logo-purasensi.png";
 import avatar from "@/assets/avatar-purasensi.jpeg";
 import Particles from "@/components/linkinbio/Particles";
@@ -49,7 +48,6 @@ const getIcon = (type: string) => {
 };
 
 const LinkInBio = () => {
-  const [bgOpacity, setBgOpacity] = useState(0.4);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PaymentProduct | null>(null);
   const { data: products } = useLinkProducts();
@@ -73,37 +71,26 @@ const LinkInBio = () => {
     setPaymentOpen(true);
   };
 
-  useEffect(() => {
-    const flash = () => {
-      setBgOpacity(0.25);
-      setTimeout(() => setBgOpacity(0.4), 150);
-      setTimeout(() => setBgOpacity(0.3), 300);
-      setTimeout(() => setBgOpacity(0.4), 450);
-    };
-    const interval = setInterval(flash, Math.random() * 4000 + 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
-      <motion.img src={bgLightning} alt="" className="absolute inset-0 w-full h-full object-cover" aria-hidden initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 2, ease: "easeOut" }} />
-      <motion.div className="absolute inset-0 bg-background" animate={{ opacity: bgOpacity }} transition={{ duration: 0.15 }} />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/80 z-[1]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent z-[1]" />
+      <div aria-hidden className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-gradient-violet opacity-40 blur-[120px] animate-pulse-glow" />
+      <div aria-hidden className="absolute bottom-0 -right-40 w-[500px] h-[500px] rounded-full bg-accent/30 blur-[140px] animate-pulse-glow" style={{ animationDelay: "2s" }} />
+      <div aria-hidden className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] [background-size:60px_60px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]" />
       <Particles />
 
       <motion.div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex flex-col items-center" variants={container} initial="show" animate="show">
-        <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 drop-shadow-[0_0_30px_hsl(var(--primary)/0.3)]" variants={logoAnim} />
+        <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 animate-float-slow drop-shadow-[0_0_40px_hsl(var(--violet)/0.5)]" variants={logoAnim} />
 
         <motion.div variants={item} className="mb-3 relative">
-          <motion.div className="absolute -inset-1 rounded-full" style={{ background: "conic-gradient(from 0deg, hsl(var(--primary)), transparent 40%, transparent 60%, hsl(var(--primary)))" }} animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
+          <motion.div className="absolute -inset-1 rounded-full" style={{ background: "conic-gradient(from 0deg, hsl(var(--violet-light)), transparent 40%, transparent 60%, hsl(var(--violet)))" }} animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
           <motion.div className="absolute -inset-2 rounded-full border border-primary/30" animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} />
           <div className="relative w-20 h-20 rounded-full border-2 border-primary overflow-hidden shadow-lg shadow-primary/40">
             <img src={PROFILE.avatar} alt={PROFILE.name} className="w-full h-full object-cover" />
           </div>
         </motion.div>
 
-        <motion.h1 variants={item} className="text-2xl md:text-3xl font-bold tracking-[0.25em] text-foreground mb-2 drop-shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+        <motion.h1 variants={item} className="font-display text-3xl md:text-4xl font-semibold tracking-[0.15em] mb-2 text-gradient-violet">
           {PROFILE.name}
         </motion.h1>
 
