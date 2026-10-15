@@ -82,7 +82,6 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: text-shimmer 6s linear infinite;
   }
   .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
   .animate-pulse-glow { animation: pulse-glow 5s ease-in-out infinite; }
@@ -104,4 +103,15 @@
 
 #lovable-badge {
   display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
