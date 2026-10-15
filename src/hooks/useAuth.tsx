@@ -37,18 +37,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let mounted = true;
 
     // 1. Set up listener FIRST
+    // IMPORTANT: never await Supabase calls inside this callback — it deadlocks
+    // the auth lock and blocks every other query. Defer with setTimeout.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
+      (_event, newSession) => {
         if (!mounted) return;
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
-          await checkAdmin(newSession.user.id);
+          const uid = newSession.user.id;
+          setTimeout(() => {
+            if (!mounted) return;
+            checkAdmin(uid).finally(() => {
+              if (mounted) setLoading(false);
+            });
+          }, 0);
         } else {
           setIsAdmin(false);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
