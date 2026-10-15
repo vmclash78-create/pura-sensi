@@ -19,7 +19,7 @@ const formatBRL = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 const AdminOrderBumps = () => {
-  const { data: bumps, isLoading } = useOrderBumps();
+  const { data: bumps, isLoading } = useOrderBumps(true);
   const upsert = useUpsertOrderBump();
   const remove = useDeleteOrderBump();
   const [editing, setEditing] = useState<Partial<OrderBumpDB> | null>(null);
