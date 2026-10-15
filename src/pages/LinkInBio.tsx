@@ -21,17 +21,17 @@ const container = {
 };
 
 const item = {
-  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
+  hidden: { opacity: 0, y: 20 },
   show: {
-    opacity: 1, y: 0, filter: "blur(0px)",
+    opacity: 1, y: 0,
     transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
 const logoAnim = {
-  hidden: { opacity: 0, scale: 0.7, filter: "blur(12px)" },
+  hidden: { opacity: 0, scale: 0.94 },
   show: {
-    opacity: 1, scale: 1, filter: "blur(0px)",
+    opacity: 1, scale: 1,
     transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
@@ -74,13 +74,13 @@ const LinkInBio = () => {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden">
-      <div aria-hidden className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-gradient-violet opacity-40 blur-[120px] animate-pulse-glow" />
-      <div aria-hidden className="absolute bottom-0 -right-40 w-[500px] h-[500px] rounded-full bg-accent/30 blur-[140px] animate-pulse-glow" style={{ animationDelay: "2s" }} />
+      <div aria-hidden className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-violet opacity-25 blur-[80px]" />
+      <div aria-hidden className="absolute bottom-0 -right-40 w-[420px] h-[420px] rounded-full bg-accent/20 blur-[80px]" />
       <div aria-hidden className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(hsl(var(--foreground))_1px,transparent_1px),linear-gradient(90deg,hsl(var(--foreground))_1px,transparent_1px)] [background-size:60px_60px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]" />
       <Particles />
 
       <motion.div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex flex-col items-center" variants={container} initial="show" animate="show">
-        <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 animate-float-slow drop-shadow-[0_0_40px_hsl(var(--violet)/0.5)]" variants={logoAnim} />
+        <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 animate-float-slow drop-shadow-[0_0_24px_hsl(var(--violet)/0.35)]" variants={logoAnim} />
 
         <motion.div variants={item} className="mb-3 relative">
           <motion.div className="absolute -inset-1 rounded-full" style={{ background: "conic-gradient(from 0deg, hsl(var(--violet-light)), transparent 40%, transparent 60%, hsl(var(--violet)))" }} animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
