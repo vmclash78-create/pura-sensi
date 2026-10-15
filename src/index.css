@@ -82,6 +82,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    animation: text-shimmer 8s linear infinite;
   }
   .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
   .animate-pulse-glow { animation: pulse-glow 5s ease-in-out infinite; }
