@@ -13,14 +13,16 @@ export interface LinkProduct {
   section: string;
 }
 
-export const useLinkProducts = () => {
+export const useLinkProducts = (includeInactive = false) => {
   return useQuery({
-    queryKey: ["link_products"],
+    queryKey: ["link_products", includeInactive],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("link_products")
         .select("*")
         .order("display_order");
+      if (!includeInactive) query = query.eq("is_active", true);
+      const { data, error } = await query;
       if (error) throw error;
       return data as LinkProduct[];
     },
