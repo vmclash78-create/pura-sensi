@@ -80,13 +80,13 @@ const LinkInBio = () => {
       <Particles />
 
       <motion.div className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex flex-col items-center" variants={container} initial="show" animate="show">
-        <motion.img src={logo} alt={PROFILE.name} className="w-56 md:w-64 mb-4 drop-shadow-[0_0_24px_hsl(var(--violet)/0.35)]" variants={logoAnim} />
+        <motion.img src={logo} alt={PROFILE.name} decoding="async" fetchPriority="high" className="w-56 md:w-64 mb-4 drop-shadow-[0_0_24px_hsl(var(--violet)/0.35)]" variants={logoAnim} />
 
         <motion.div variants={item} className="mb-3 relative">
           <div aria-hidden className="absolute -inset-1 rounded-full" style={{ background: "conic-gradient(from 0deg, hsl(var(--violet-light)), transparent 40%, transparent 60%, hsl(var(--violet)))" }} />
           <div aria-hidden className="absolute -inset-2 rounded-full border border-primary/20" />
           <div className="relative w-20 h-20 rounded-full border-2 border-primary overflow-hidden shadow-lg shadow-primary/40">
-            <img src={PROFILE.avatar} alt={PROFILE.name} className="w-full h-full object-cover" />
+            <img src={PROFILE.avatar} alt={PROFILE.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           </div>
         </motion.div>
 
