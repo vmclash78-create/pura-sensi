@@ -1,12 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Copy, Check, QrCode, Loader2, ShieldCheck, Lock } from "lucide-react";
+import { Copy, Check, QrCode, ShieldCheck, Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { generatePixPayload } from "@/lib/pix";
 import QRCode from "qrcode";
-
-const WAIT_SECONDS = 20;
 
 interface PixPaymentScreenProps {
   productName: string;
@@ -25,9 +23,6 @@ const PixPaymentScreen = ({ productName, amount, pixKey, merchantName, merchantC
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [pixPayload, setPixPayload] = useState("");
   const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(WAIT_SECONDS);
-
-  const unlocked = countdown === 0;
 
   useEffect(() => {
     const payload = generatePixPayload(amount, pixKey, merchantName, merchantCity);
@@ -39,17 +34,19 @@ const PixPaymentScreen = ({ productName, amount, pixKey, merchantName, merchantC
     }).then(setQrDataUrl);
   }, [amount, pixKey, merchantName, merchantCity]);
 
-  useEffect(() => {
-    if (countdown <= 0) return;
-    const t = setInterval(() => setCountdown((s) => (s > 0 ? s - 1 : 0)), 1000);
-    return () => clearInterval(t);
-  }, [countdown]);
-
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(pixPayload);
-    setCopied(true);
-    toast.success("Código PIX copiado!");
-    setTimeout(() => setCopied(false), 2500);
+  const handleCopy = useCallback(async () => {
+    if (!pixPayload) {
+      toast.error("O código PIX ainda não foi gerado.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(pixPayload);
+      setCopied(true);
+      toast.success("Código PIX copiado!");
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error("Não foi possível copiar. Selecione e copie o código manualmente.");
+    }
   }, [pixPayload]);
 
   return (
@@ -65,7 +62,7 @@ const PixPaymentScreen = ({ productName, amount, pixKey, merchantName, merchantC
           <QrCode className="w-6 h-6 text-primary-foreground" />
           <div>
             <p className="text-primary-foreground font-bold text-lg">Pagamento via PIX</p>
-            <p className="text-primary-foreground/70 text-xs">Aprovação instantânea</p>
+            <p className="text-primary-foreground/70 text-xs">PIX copia e cola</p>
           </div>
         </div>
 
@@ -89,8 +86,12 @@ const PixPaymentScreen = ({ productName, amount, pixKey, merchantName, merchantC
           )}
 
           <p className="text-sm text-muted-foreground mt-4 text-center max-w-xs">
-            Abra o app do seu banco e pague usando o <strong className="text-foreground">QR Code</strong> ou copie o <strong className="text-foreground">código PIX</strong> abaixo
+            Abra o app do seu banco e pague usando o <strong className="text-foreground">QR Code</strong> ou copie o <strong className="text-foreground">código PIX</strong> abaixo.
           </p>
+          <div className="mt-4 w-full rounded-xl border border-primary/25 bg-primary/10 p-3 flex items-start gap-2 text-left">
+            <AlertTriangle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-foreground/80">Este site ainda não verifica pagamentos automaticamente. Confira os dados e o destinatário no app do banco; a tela seguinte não confirma que o pagamento foi recebido.</p>
+          </div>
         </div>
 
         <div className="px-5 pb-5">
@@ -132,40 +133,13 @@ const PixPaymentScreen = ({ productName, amount, pixKey, merchantName, merchantC
       </div>
 
       <div className="w-full max-w-lg mt-5">
-        {!unlocked ? (
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              <span className="text-sm font-medium">Aguardando pagamento...</span>
-            </div>
-            <div className="relative w-16 h-16">
-              <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
-                <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--border))" strokeWidth="4" />
-                <circle
-                  cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--primary))" strokeWidth="4"
-                  strokeDasharray={2 * Math.PI * 28}
-                  strokeDashoffset={2 * Math.PI * 28 * (1 - countdown / WAIT_SECONDS)}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000 ease-linear"
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-xl font-bold text-foreground">
-                {countdown}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">Aguarde para finalizar</p>
-          </div>
-        ) : (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
-            <Button
-              type="button"
-              onClick={onConfirm}
-              className="w-full h-14 rounded-xl font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-            >
-              ✅ Finalizar Pedido
-            </Button>
-          </motion.div>
-        )}
+        <Button
+          type="button"
+          onClick={onConfirm}
+          className="w-full h-14 rounded-xl font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+        >
+          Continuar
+        </Button>
       </div>
     </motion.div>
   );
