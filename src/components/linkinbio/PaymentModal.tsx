@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { ChevronLeft, Clock } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CheckoutForm, { type CheckoutFormData } from "@/components/checkout/CheckoutForm";
 import OrderBump, { type OrderBumpItem } from "@/components/checkout/OrderBump";
@@ -23,38 +23,6 @@ interface PaymentModalProps {
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
-const CountdownTimer = () => {
-  const [seconds, setSeconds] = useState(300);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds((s) => (s > 0 ? s - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const min = String(Math.floor(seconds / 60)).padStart(2, "0");
-  const sec = String(seconds % 60).padStart(2, "0");
-
-  return (
-    <div className="flex items-center gap-3 bg-secondary text-foreground px-4 py-2">
-      <div className="flex items-center gap-2">
-        <div className="text-center">
-          <span className="text-lg font-bold font-mono">{min}</span>
-          <span className="block text-[10px] uppercase text-muted-foreground">min</span>
-        </div>
-        <span className="text-lg font-bold">:</span>
-        <div className="text-center">
-          <span className="text-lg font-bold font-mono">{sec}</span>
-          <span className="block text-[10px] uppercase text-muted-foreground">seg</span>
-        </div>
-      </div>
-      <Clock className="w-4 h-4 text-muted-foreground" />
-      <span className="text-xs font-medium text-muted-foreground">Seu tempo está acabando!</span>
-    </div>
-  );
-};
 
 const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
   const navigate = useNavigate();
@@ -125,7 +93,6 @@ const PaymentModal = ({ open, onOpenChange, product }: PaymentModalProps) => {
               <ChevronLeft className="w-5 h-5" /> Voltar
             </button>
           </div>
-          <CountdownTimer />
         </div>
 
         <div className="max-w-lg mx-auto px-4 pb-8">
