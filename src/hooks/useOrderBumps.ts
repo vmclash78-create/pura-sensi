@@ -11,14 +11,16 @@ export interface OrderBumpDB {
   display_order: number;
 }
 
-export const useOrderBumps = () => {
+export const useOrderBumps = (includeInactive = false) => {
   return useQuery({
-    queryKey: ["order_bumps"],
+    queryKey: ["order_bumps", includeInactive],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("order_bumps")
         .select("*")
         .order("display_order");
+      if (!includeInactive) query = query.eq("is_active", true);
+      const { data, error } = await query;
       if (error) throw error;
       return data as OrderBumpDB[];
     },
